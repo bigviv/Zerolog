@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "Com.zerolog",
+        "sha256_cert_fingerprints": ["5E:C4:C3:29:F5:61:C6:EE:61:19:14:98:8F:26:1A:1C:E9:CB:88:3F:A8:BA:02:7A:3F:43:2A:50:0D:84:EC:C2"]
+      }
+    }]
