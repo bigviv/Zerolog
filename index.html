@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>ZeroLog Pro</title>
+    <title>ZeroLog Pro v4.9.3</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,14 +14,16 @@
         body { background: #000; color: #fff; font-family: sans-serif; touch-action: manipulation; }
         .tab-active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
         input { background: #111 !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 10px; padding: 12px; font-weight: bold; }
-        .plate-text { color: #3b82f6; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .plate-text { color: #3b82f6; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        .title-input { background: transparent !important; border: none !important; font-size: 1.5rem; font-weight: 900; font-style: italic; text-transform: uppercase; padding: 0 !important; width: 100%; color: #fff !important; outline: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const S_KEY = "zerolog_v491";
+        const S_KEY = "zerolog_v493_master";
         const PRO_KEY = "GAINS2026";
 
         function App() {
@@ -40,7 +42,13 @@
                         { id: 'd6', label: 'Sat', title: 'Active', ex: [] },
                         { id: 'd7', label: 'Sun', title: 'Rest Day', ex: [] }
                     ],
-                    lib: { "Main": ["Bench Press", "Squat", "Deadlift"], "Arms": ["Curls"] }
+                    lib: { 
+                        "Chest": ["Bench Press", "Incline Press", "Chest Fly"],
+                        "Back": ["Deadlift", "Lat Pulldown", "Seated Row"],
+                        "Legs": ["Squat", "Leg Press", "Leg Extension"],
+                        "Shoulders": ["OHP", "Lateral Raise"],
+                        "Arms": ["Bicep Curl", "Tricep Pushdown"]
+                    }
                 };
             });
 
@@ -55,11 +63,13 @@
             useEffect(() => {
                 let itv = null;
                 if (timer > 0) itv = setInterval(() => setTimer(t => t - 1), 1000);
-                else if (timer === 0 && itv !== null) clearInterval(itv);
+                else if (timer === 0 && itv !== null) {
+                    if (navigator.vibrate) navigator.vibrate([400, 200, 400]);
+                    clearInterval(itv);
+                }
                 return () => clearInterval(itv);
             }, [timer]);
 
-            // Correct Plate Calculation Logic
             const renderPlates = (w) => {
                 const total = parseFloat(w) || 0;
                 const bar = parseFloat(state.settings.barWeight) || 0;
@@ -68,16 +78,13 @@
             };
 
             const logWorkout = () => {
-                let totalWeightLifted = 0;
+                let vol = 0;
                 state.days[dIdx].ex.forEach(e => {
-                    e.sets.filter(s => s.done).forEach(s => {
-                        // This calculates total load: Weight * Reps
-                        totalWeightLifted += (parseFloat(s.w || 0) * parseFloat(s.r || 0));
-                    });
+                    e.sets.filter(s => s.done).forEach(s => { vol += (parseFloat(s.w || 0) * parseFloat(s.r || 0)); });
                 });
-                if (totalWeightLifted > 0) {
+                if (vol > 0) {
                     const ns = {...state};
-                    ns.history.push({ date: new Date().toLocaleDateString(), title: state.days[dIdx].title, vol: totalWeightLifted.toLocaleString() });
+                    ns.history.push({ date: new Date().toLocaleDateString(), title: state.days[dIdx].title, vol: vol.toLocaleString() });
                     ns.days[dIdx].ex.forEach(e => e.sets.forEach(s => s.done = false));
                     setState(ns); setView('history'); confetti();
                 }
@@ -98,18 +105,23 @@
                             <div>
                                 <div className="flex gap-2 overflow-x-auto mb-6 no-scrollbar">
                                     {state.days.map((d, i) => (
-                                        <button key={i} onClick={() => setDIdx(i)} className={`px-4 py-2 rounded-xl text-[10px] font-bold ${dIdx === i ? 'bg-blue-600' : 'bg-white/5'}`}>{d.label}</button>
+                                        <button key={i} onClick={() => setDIdx(i)} className={`px-4 py-2 rounded-xl text-[10px] font-bold ${dIdx === i ? 'bg-blue-600' : 'bg-white/5 opacity-40'}`}>{d.label}</button>
                                     ))}
                                 </div>
-                                <div className="flex justify-between items-center mb-6">
-                                    <h1 className="text-2xl font-black italic uppercase">{cur.title}</h1>
-                                    <button onClick={() => setLibOpen(true)} className="bg-blue-600 w-10 h-10 rounded-full text-xl font-bold">+</button>
+                                <div className="flex justify-between items-center mb-6 gap-4">
+                                    <input className="title-input" value={cur.title} onChange={e => {
+                                        const ns = {...state}; ns.days[dIdx].title = e.target.value; setState(ns);
+                                    }} />
+                                    <button onClick={() => setLibOpen(true)} className="bg-blue-600 w-12 h-10 rounded-full text-xl font-bold flex-shrink-0">+</button>
                                 </div>
                                 {cur.ex.map((e, ei) => (
                                     <div key={ei} className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
-                                        <p className="font-bold text-blue-500 text-xs mb-4 uppercase tracking-widest">{e.name}</p>
+                                        <div className="flex justify-between mb-4 items-center">
+                                            <p className="font-bold text-blue-500 text-xs uppercase tracking-widest">{e.name}</p>
+                                            <button onClick={() => { if(confirm("Remove?")){ const ns={...state}; ns.days[dIdx].ex.splice(ei,1); setState(ns); }}} className="text-white/20 text-xl">&times;</button>
+                                        </div>
                                         {e.sets.map((s, si) => (
-                                            <div key={si} className="mb-4 border-b border-white/5 pb-2">
+                                            <div key={si} className="mb-4">
                                                 <div className="flex gap-2 mb-2">
                                                     <input type="number" placeholder="kg" className="w-full" value={s.w} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].w = x.target.value; setState(ns);}} />
                                                     <input type="number" placeholder="reps" className="w-full" value={s.r} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].r = x.target.value; setState(ns);}} />
@@ -121,22 +133,19 @@
                                                 <div className="plate-text ml-1">{renderPlates(s.w)}</div>
                                             </div>
                                         ))}
-                                        <button onClick={() => {const ns={...state}; ns.days[dIdx].ex[ei].sets.push({w:'', r:'', done:false}); setState(ns);}} className="w-full text-[9px] opacity-20 font-bold uppercase mt-2">+ Add Set</button>
+                                        <button onClick={() => {const ns={...state}; ns.days[dIdx].ex[ei].sets.push({w:'', r:'', done:false}); setState(ns);}} className="w-full text-[9px] opacity-20 font-bold uppercase mt-2 tracking-widest">+ Add Set</button>
                                     </div>
                                 ))}
-                                {cur.ex.length > 0 && <button onClick={logWorkout} className="w-full bg-blue-600 p-4 rounded-xl font-bold mt-4 uppercase">Complete Session</button>}
+                                {cur.ex.length > 0 && <button onClick={logWorkout} className="w-full bg-blue-600 p-4 rounded-xl font-bold mt-4 uppercase">Log Session</button>}
                             </div>
                         )}
 
                         {view === 'history' && (
                             <div className="space-y-3">
-                                {state.history.map((h, i) => (
+                                {[...state.history].reverse().map((h, i) => (
                                     <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5 flex justify-between">
                                         <div><p className="font-bold text-xs uppercase">{h.title}</p><p className="text-[10px] opacity-30">{h.date}</p></div>
-                                        <div className="text-right">
-                                            <p className="text-blue-500 font-bold">{h.vol} kg</p>
-                                            <p className="text-[8px] opacity-30 uppercase">Total Weight</p>
-                                        </div>
+                                        <div className="text-right"><p className="text-blue-500 font-bold">{h.vol} kg</p><p className="text-[8px] opacity-30 uppercase tracking-widest">Total Weight</p></div>
                                     </div>
                                 ))}
                             </div>
@@ -145,7 +154,7 @@
                         {view === 'settings' && (
                             <div className="space-y-6">
                                 <div className="p-4 bg-white/5 rounded-xl">
-                                    <label className="text-[10px] font-bold opacity-40 block mb-2 uppercase">Default Barbell (kg)</label>
+                                    <label className="text-[10px] font-bold opacity-40 block mb-2 uppercase">Barbell Weight (kg)</label>
                                     <input type="number" className="w-full" value={state.settings.barWeight} onChange={e => setState({...state, settings:{...state.settings, barWeight: e.target.value}})} />
                                 </div>
                                 <div className="p-4 bg-white/5 rounded-xl">
@@ -153,24 +162,28 @@
                                     <input type="number" className="w-full" value={state.settings.restSeconds} onChange={e => setState({...state, settings:{...state.settings, restSeconds: e.target.value}})} />
                                 </div>
                                 <div className="p-4 border border-blue-500/30 rounded-xl">
-                                    <p className="text-[10px] font-bold text-blue-500 mb-2 uppercase">Pro Activation</p>
+                                    <p className="text-[10px] font-bold text-blue-500 mb-2 uppercase">Pro Unlock</p>
                                     <div className="flex gap-2">
                                         <input type="text" placeholder="Code" className="flex-1" onChange={e => setPromo(e.target.value)} />
-                                        <button onClick={() => { if(promo.toUpperCase() === PRO_KEY) { setState({...state, isPro:true}); alert("Pro Unlocked!"); } }} className="bg-blue-600 px-4 rounded font-bold text-xs uppercase">OK</button>
+                                        <button onClick={() => { if(promo.toUpperCase() === PRO_KEY) { setState({...state, isPro:true}); alert("Unlocked!"); } }} className="bg-blue-600 px-4 rounded font-bold text-xs">OK</button>
                                     </div>
+                                    {state.isPro && <p className="text-green-500 text-[10px] font-bold mt-2 uppercase">Pro Status Active</p>}
                                 </div>
-                                <a href="privacy.html" className="text-[10px] opacity-20 block text-center underline uppercase">Privacy Policy</a>
                             </div>
                         )}
                     </main>
 
                     {libOpen && (
                         <div className="fixed inset-0 bg-black z-50 p-6 overflow-y-auto">
-                            <div className="flex justify-between items-center mb-8"><h2 className="text-xl font-bold uppercase italic">Exercises</h2><button onClick={()=>setLibOpen(false)} className="text-3xl">&times;</button></div>
+                            <div className="flex justify-between items-center mb-8"><h2 className="text-xl font-bold uppercase italic">Library</h2><button onClick={()=>setLibOpen(false)} className="text-3xl">&times;</button></div>
                             {Object.entries(state.lib).map(([c, es]) => (
-                                <div key={c} className="mb-6"><p className="text-blue-500 text-[10px] font-bold mb-3 uppercase">{c}</p>
+                                <div key={c} className="mb-6"><p className="text-blue-500 text-[10px] font-bold mb-3 uppercase tracking-widest">{c}</p>
                                 {es.map(en => (
-                                    <button key={en} onClick={()=>{const ns={...state}; ns.days[dIdx].ex.push({name:en, sets:[{w:'',r:'',done:false}]}); setState(ns); setLibOpen(false);}} className="w-full text-left p-5 bg-white/5 mb-2 rounded-xl font-bold text-xs uppercase border border-white/5">{en}</button>
+                                    <button key={en} onClick={()=>{
+                                        const ns={...state}; 
+                                        ns.days[dIdx].ex.push({name:en, sets:[{w:'',r:'',done:false}]}); 
+                                        setState(ns); setLibOpen(false);
+                                    }} className="w-full text-left p-5 bg-white/5 mb-2 rounded-xl font-bold text-xs uppercase border border-white/5">{en}</button>
                                 ))}</div>
                             ))}
                         </div>
@@ -178,7 +191,7 @@
 
                     {timer > 0 && (
                         <div className="fixed bottom-0 left-0 right-0 z-50">
-                            <div className="bg-blue-600 p-6 flex justify-between items-center">
+                            <div className="bg-blue-600 p-6 flex justify-between items-center shadow-2xl">
                                 <span className="text-4xl font-mono font-black">{Math.floor(timer/60)}:{(timer%60).toString().padStart(2,'0')}</span>
                                 <button onClick={()=>setTimer(0)} className="bg-white/20 px-4 py-2 rounded-lg font-bold text-xs uppercase">Skip</button>
                             </div>
