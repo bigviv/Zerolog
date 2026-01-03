@@ -24,7 +24,7 @@
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const S_KEY = "zerolog_v494_final";
+        const S_KEY = "zerolog_v495_fixed";
         const PRO_KEY = "GAINS2026";
 
         function App() {
@@ -59,8 +59,10 @@
             const [promo, setPromo] = useState("");
             const [libOpen, setLibOpen] = useState(false);
 
+            // Save State
             useEffect(() => { localStorage.setItem(S_KEY, JSON.stringify(state)); }, [state]);
 
+            // Timer Logic
             useEffect(() => {
                 let itv = null;
                 if (timer > 0) itv = setInterval(() => setTimer(t => t - 1), 1000);
@@ -70,6 +72,13 @@
                 }
                 return () => clearInterval(itv);
             }, [timer]);
+
+            // Trigger Ads when timer starts (Fixes the syntax error)
+            useEffect(() => {
+                if (timer > 0 && !state.isPro) {
+                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.log("Ad error (expected locally):", e); }
+                }
+            }, [timer, state.isPro]);
 
             const renderPlates = (w) => {
                 const total = parseFloat(w) || 0;
@@ -200,8 +209,8 @@
                             {!state.isPro && (
                                 <div className="bg-white p-2 flex flex-col items-center border-t border-gray-200">
                                     <span className="text-[8px] text-gray-500 uppercase font-bold mb-1">Advertisement</span>
+                                    {/* REPLACE DATA ATTRIBUTES BELOW WITH YOUR OWN ID */}
                                     <ins className="adsbygoogle" style={{display:'inline-block',width:'320px',height:'50px'}} data-ad-client="ca-pub-REPLACE_WITH_YOUR_ID" data-ad-slot="REPLACE_WITH_YOUR_SLOT_ID"></ins>
-                                    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
                                 </div>
                             )}
                         </div>
