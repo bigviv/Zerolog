@@ -7,10 +7,11 @@
   "background_color": "#000000",
   "theme_color": "#3b82f6",
   "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/2906/2906511.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+  {
+    "src": "/zerolog/logo.jpg",
+    "sizes": "512x512",
+    "type": "image/jpg"
+  }
+]
   ]
 }
