@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>ZeroLog Pro</title>
+    <title>ZeroLog Pro v5.0</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -14,8 +14,8 @@
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; touch-action: manipulation; }
         .tab-active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
-        input { background: #111 !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 10px; padding: 12px; font-weight: bold; }
-        .plate-text { color: #3b82f6; font-size: 11px; font-weight: 800; text-transform: uppercase; }
+        input, textarea { background: #111 !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 10px; padding: 12px; font-weight: bold; }
+        .plate-text { color: #3b82f6; font-size: 10px; font-weight: 800; text-transform: uppercase; }
         .title-input { background: transparent !important; border: none !important; font-size: 1.5rem; font-weight: 900; font-style: italic; text-transform: uppercase; padding: 0 !important; width: 100%; color: #fff !important; outline: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
@@ -24,7 +24,7 @@
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const S_KEY = "zerolog_v495_fixed";
+        const S_KEY = "zerolog_v50_master";
         const PRO_KEY = "GAINS2026";
 
         function App() {
@@ -32,23 +32,21 @@
                 const s = localStorage.getItem(S_KEY);
                 return s ? JSON.parse(s) : {
                     isPro: false,
+                    profile: { name: '', weight: '', height: '' },
                     settings: { restSeconds: 90, barWeight: 20 },
                     history: [],
                     days: [
-                        { id: 'd1', label: 'Mon', title: 'Chest & Tri', ex: [] },
-                        { id: 'd2', label: 'Tue', title: 'Back & Bi', ex: [] },
-                        { id: 'd3', label: 'Wed', title: 'Rest Day', ex: [] },
-                        { id: 'd4', label: 'Thu', title: 'Shoulders', ex: [] },
-                        { id: 'd5', label: 'Fri', title: 'Leg Day', ex: [] },
-                        { id: 'd6', label: 'Sat', title: 'Active', ex: [] },
-                        { id: 'd7', label: 'Sun', title: 'Rest Day', ex: [] }
+                        { id: 'd1', label: 'Mon', title: 'Upper Push', ex: [], notes: '', cardio: [] },
+                        { id: 'd2', label: 'Tue', title: 'Lower Body', ex: [], notes: '', cardio: [] },
+                        { id: 'd3', label: 'Wed', title: 'Rest Day', ex: [], notes: '', cardio: [] },
+                        { id: 'd4', label: 'Thu', title: 'Upper Pull', ex: [], notes: '', cardio: [] },
+                        { id: 'd5', label: 'Fri', title: 'Full Body', ex: [], notes: '', cardio: [] },
+                        { id: 'd6', label: 'Sat', title: 'Active Recovery', ex: [], notes: '', cardio: [] },
+                        { id: 'd7', label: 'Sun', title: 'Rest Day', ex: [], notes: '', cardio: [] }
                     ],
                     lib: { 
-                        "Chest": ["Bench Press", "Incline Press", "Chest Fly"],
-                        "Back": ["Deadlift", "Lat Pulldown", "Seated Row"],
-                        "Legs": ["Squat", "Leg Press", "Leg Extension"],
-                        "Shoulders": ["OHP", "Lateral Raise"],
-                        "Arms": ["Bicep Curl", "Tricep Pushdown"]
+                        "Chest": ["Bench Press", "Chest Fly"], "Back": ["Deadlift", "Lat Pulldown"],
+                        "Legs": ["Squat", "Leg Press"], "Arms": ["Bicep Curl", "Tricep Pushdown"]
                     }
                 };
             });
@@ -56,98 +54,112 @@
             const [view, setView] = useState('workout');
             const [dIdx, setDIdx] = useState(0);
             const [timer, setTimer] = useState(0);
-            const [promo, setPromo] = useState("");
             const [libOpen, setLibOpen] = useState(false);
+            const [promo, setPromo] = useState("");
 
-            // Save State
             useEffect(() => { localStorage.setItem(S_KEY, JSON.stringify(state)); }, [state]);
 
-            // Timer Logic
             useEffect(() => {
                 let itv = null;
                 if (timer > 0) itv = setInterval(() => setTimer(t => t - 1), 1000);
-                else if (timer === 0 && itv !== null) {
-                    if (navigator.vibrate) navigator.vibrate([400, 200, 400]);
-                    clearInterval(itv);
-                }
+                else if (timer === 0 && itv !== null) { if (navigator.vibrate) navigator.vibrate([400, 200, 400]); clearInterval(itv); }
                 return () => clearInterval(itv);
             }, [timer]);
 
-            // Trigger Ads when timer starts (Fixes the syntax error)
-            useEffect(() => {
-                if (timer > 0 && !state.isPro) {
-                    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) { console.log("Ad error (expected locally):", e); }
-                }
-            }, [timer, state.isPro]);
-
             const renderPlates = (w) => {
-                const total = parseFloat(w) || 0;
                 const bar = parseFloat(state.settings.barWeight) || 0;
-                const perSide = (total - bar) / 2;
-                return perSide > 0 ? `Load: ${perSide.toFixed(1)}kg Per Side` : (total > 0 ? "Bar Only" : "");
+                const perSide = (parseFloat(w) - bar) / 2;
+                return perSide > 0 ? `Load: ${perSide.toFixed(1)}kg Per Side` : (w > 0 ? "Bar" : "");
             };
 
             const logWorkout = () => {
                 let vol = 0;
-                state.days[dIdx].ex.forEach(e => {
-                    e.sets.filter(s => s.done).forEach(s => { vol += (parseFloat(s.w || 0) * parseFloat(s.r || 0)); });
-                });
-                if (vol > 0) {
+                state.days[dIdx].ex.forEach(e => e.sets.filter(s => s.done).forEach(s => vol += (parseFloat(s.w||0) * parseFloat(s.r||0))));
+                if (vol > 0 || state.days[dIdx].cardio.length > 0) {
                     const ns = {...state};
                     ns.history.push({ date: new Date().toLocaleDateString(), title: state.days[dIdx].title, vol: vol.toLocaleString() });
-                    ns.days[dIdx].ex.forEach(e => e.sets.forEach(s => s.done = false));
                     setState(ns); setView('history'); confetti();
                 }
             };
 
             const cur = state.days[dIdx];
+            const isRest = cur.title.toLowerCase().includes('rest') || cur.title.toLowerCase().includes('recovery');
 
             return (
-                <div className="min-h-screen flex flex-col bg-black">
+                <div className="min-h-screen flex flex-col bg-black text-left">
                     <nav className="flex border-b border-white/10 sticky top-0 bg-black z-40">
                         {['workout', 'history', 'settings'].map(v => (
-                            <button key={v} onClick={() => setView(v)} className={`flex-1 p-4 font-bold text-[10px] uppercase ${view === v ? 'tab-active' : 'text-gray-500'}`}>{v}</button>
+                            <button key={v} onClick={() => setView(v)} className={`flex-1 p-4 font-bold text-[10px] uppercase tracking-widest ${view === v ? 'tab-active' : 'text-gray-500'}`}>{v}</button>
                         ))}
                     </nav>
 
-                    <main className="flex-1 p-4 pb-40 max-w-md mx-auto w-full text-left">
+                    <main className="flex-1 p-4 pb-40 max-w-md mx-auto w-full">
                         {view === 'workout' && (
-                            <div>
-                                <div className="flex gap-2 overflow-x-auto mb-6 no-scrollbar">
+                            <div className="space-y-6">
+                                <div className="flex gap-2 overflow-x-auto no-scrollbar">
                                     {state.days.map((d, i) => (
                                         <button key={i} onClick={() => setDIdx(i)} className={`px-4 py-2 rounded-xl text-[10px] font-bold ${dIdx === i ? 'bg-blue-600' : 'bg-white/5 opacity-40'}`}>{d.label}</button>
                                     ))}
                                 </div>
-                                <div className="flex justify-between items-center mb-6 gap-4">
-                                    <input className="title-input" value={cur.title} onChange={e => {
-                                        const ns = {...state}; ns.days[dIdx].title = e.target.value; setState(ns);
-                                    }} />
-                                    <button onClick={() => setLibOpen(true)} className="bg-blue-600 w-12 h-10 rounded-full text-xl font-bold flex-shrink-0 shadow-lg">+</button>
+
+                                <div className="flex justify-between items-center gap-4">
+                                    <input className="title-input" value={cur.title} onChange={e => { const ns={...state}; ns.days[dIdx].title = e.target.value; setState(ns); }} />
+                                    <button onClick={() => setLibOpen(true)} className="bg-blue-600 w-12 h-10 rounded-full text-xl font-bold">+</button>
                                 </div>
+
+                                {isRest && (
+                                    <div className="bg-blue-900/20 border border-blue-500/30 p-6 rounded-2xl">
+                                        <p className="text-blue-400 font-bold text-xs mb-2 uppercase tracking-widest italic">Recovery Mode</p>
+                                        <p className="text-sm opacity-80 mb-4">Focus on 3L+ water, 8h sleep, and light movement today.</p>
+                                    </div>
+                                )}
+
                                 {cur.ex.map((e, ei) => (
-                                    <div key={ei} className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
+                                    <div key={ei} className="bg-white/5 border border-white/10 rounded-2xl p-4">
                                         <div className="flex justify-between mb-4 items-center">
-                                            <p className="font-bold text-blue-500 text-xs uppercase tracking-widest">{e.name}</p>
-                                            <button onClick={() => { if(confirm("Remove Exercise?")){ const ns={...state}; ns.days[dIdx].ex.splice(ei,1); setState(ns); }}} className="text-white/20 text-xl font-bold">&times;</button>
+                                            <p className="font-bold text-blue-500 text-xs uppercase">{e.name}</p>
+                                            <button onClick={() => {if(confirm("Delete?")){const ns={...state}; ns.days[dIdx].ex.splice(ei,1); setState(ns);}}} className="text-white/20 text-xl">&times;</button>
                                         </div>
                                         {e.sets.map((s, si) => (
                                             <div key={si} className="mb-4">
                                                 <div className="flex gap-2 mb-2 items-center">
                                                     <input type="number" placeholder="kg" className="w-full" value={s.w} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].w = x.target.value; setState(ns);}} />
                                                     <input type="number" placeholder="reps" className="w-full" value={s.r} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].r = x.target.value; setState(ns);}} />
-                                                    <button onClick={() => {
-                                                        const ns = {...state}; const t = ns.days[dIdx].ex[ei].sets[si];
-                                                        t.done = !t.done; if(t.done) setTimer(state.settings.restSeconds); setState(ns);
-                                                    }} className={`w-14 h-12 flex-shrink-0 rounded-xl ${s.done ? 'bg-blue-600' : 'border border-white/20'}`}>{s.done ? '✓' : ''}</button>
-                                                    <button onClick={() => { const ns={...state}; ns.days[dIdx].ex[ei].sets.splice(si,1); setState(ns); }} className="text-red-900 font-bold px-1 text-lg">&times;</button>
+                                                    <button onClick={() => { const ns={...state}; const t=ns.days[dIdx].ex[ei].sets[si]; t.done=!t.done; if(t.done) setTimer(state.settings.restSeconds); setState(ns); }} className={`w-14 h-12 flex-shrink-0 rounded-xl ${s.done ? 'bg-blue-600' : 'border border-white/20'}`}>{s.done ? '✓' : ''}</button>
+                                                    <button onClick={() => {const ns={...state}; ns.days[dIdx].ex[ei].sets.splice(si,1); setState(ns);}} className="text-red-900 px-1">&times;</button>
                                                 </div>
-                                                <div className="plate-text ml-1">{renderPlates(s.w)}</div>
+                                                <div className="flex justify-between items-center px-1">
+                                                    <span className="plate-text">{renderPlates(s.w)}</span>
+                                                    <input placeholder="Effort/Notes" className="!p-1 !text-[9px] !bg-transparent !border-none opacity-40 text-right w-1/2" value={s.n} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].n = x.target.value; setState(ns);}} />
+                                                </div>
                                             </div>
                                         ))}
-                                        <button onClick={() => {const ns={...state}; ns.days[dIdx].ex[ei].sets.push({w:'', r:'', done:false}); setState(ns);}} className="w-full text-[9px] opacity-20 font-bold uppercase mt-2 tracking-widest">+ Add Set</button>
+                                        <button onClick={() => { 
+                                            const ns={...state}; const prev=e.sets[e.sets.length-1];
+                                            ns.days[dIdx].ex[ei].sets.push({w: prev?prev.w:'', r: prev?prev.r:'', done:false, n:''}); 
+                                            setState(ns);
+                                        }} className="w-full text-[9px] opacity-20 font-bold uppercase tracking-widest">+ Add Set (Clone)</button>
                                     </div>
                                 ))}
-                                {cur.ex.length > 0 && <button onClick={logWorkout} className="w-full bg-blue-600 p-4 rounded-xl font-bold mt-4 uppercase shadow-xl">Complete Workout</button>}
+
+                                {cur.cardio.map((c, ci) => (
+                                    <div key={ci} className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <p className="text-green-500 font-bold text-xs uppercase">Cardio Session</p>
+                                            <button onClick={()=>{const ns={...state}; ns.days[dIdx].cardio.splice(ci,1); setState(ns);}} className="opacity-20">&times;</button>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <input type="number" placeholder="Min" className="w-1/3" value={c.m} onChange={x=>{const ns={...state}; ns.days[dIdx].cardio[ci].m=x.target.value; setState(ns);}} />
+                                            <input placeholder="Speed/Incline" className="w-2/3" value={c.s} onChange={x=>{const ns={...state}; ns.days[dIdx].cardio[ci].s=x.target.value; setState(ns);}} />
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <div className="space-y-4">
+                                    <button onClick={() => { const ns={...state}; ns.days[dIdx].cardio.push({m:'', s:'', done:false}); setState(ns); }} className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-[10px] font-bold uppercase opacity-60">+ Add Cardio</button>
+                                    <textarea placeholder="Session Notes (Fatigue, soreness...)" className="w-full h-24 text-sm" value={cur.notes} onChange={e => { const ns={...state}; ns.days[dIdx].notes = e.target.value; setState(ns); }} />
+                                    <button onClick={logWorkout} className="w-full bg-blue-600 p-4 rounded-xl font-bold uppercase">Complete Workout</button>
+                                </div>
                             </div>
                         )}
 
@@ -156,7 +168,7 @@
                                 {[...state.history].reverse().map((h, i) => (
                                     <div key={i} className="p-4 bg-white/5 rounded-xl flex justify-between">
                                         <div><p className="font-bold text-xs uppercase">{h.title}</p><p className="text-[10px] opacity-30">{h.date}</p></div>
-                                        <div className="text-right"><p className="text-blue-500 font-bold">{h.vol} kg</p><p className="text-[8px] opacity-30 uppercase tracking-widest font-bold">Total Weight</p></div>
+                                        <div className="text-right"><p className="text-blue-500 font-bold">{h.vol} kg</p><p className="text-[8px] opacity-30 uppercase font-bold">Total Weight</p></div>
                                     </div>
                                 ))}
                             </div>
@@ -164,55 +176,43 @@
 
                         {view === 'settings' && (
                             <div className="space-y-6">
-                                <div className="p-4 bg-white/5 rounded-xl">
-                                    <label className="text-[10px] font-bold opacity-40 block mb-2 uppercase">Barbell Weight (kg)</label>
-                                    <input type="number" className="w-full" value={state.settings.barWeight} onChange={e => setState({...state, settings:{...state.settings, barWeight: e.target.value}})} />
-                                </div>
-                                <div className="p-4 bg-white/5 rounded-xl">
-                                    <label className="text-[10px] font-bold opacity-40 block mb-2 uppercase">Rest Timer (sec)</label>
-                                    <input type="number" className="w-full" value={state.settings.restSeconds} onChange={e => setState({...state, settings:{...state.settings, restSeconds: e.target.value}})} />
-                                </div>
-                                <div className="p-4 border border-blue-500/30 rounded-xl">
-                                    <p className="text-[10px] font-bold text-blue-500 mb-2 uppercase">Pro Unlock Key</p>
+                                <div className="p-4 bg-white/5 rounded-xl space-y-4">
+                                    <p className="text-[10px] font-bold opacity-40 uppercase">Personal Details</p>
+                                    <input placeholder="Name" className="w-full" value={state.profile.name} onChange={e=>setState({...state, profile:{...state.profile, name:e.target.value}})} />
                                     <div className="flex gap-2">
-                                        <input type="text" placeholder="Code" className="flex-1" onChange={e => setPromo(e.target.value)} />
-                                        <button onClick={() => { if(promo.toUpperCase() === PRO_KEY) { setState({...state, isPro:true}); alert("Unlocked!"); } }} className="bg-blue-600 px-4 rounded font-bold text-xs">OK</button>
+                                        <input placeholder="Height (cm)" className="w-full" value={state.profile.height} onChange={e=>setState({...state, profile:{...state.profile, height:e.target.value}})} />
+                                        <input placeholder="Weight (kg)" className="w-full" value={state.profile.weight} onChange={e=>setState({...state, profile:{...state.profile, weight:e.target.value}})} />
                                     </div>
-                                    {state.isPro && <p className="text-green-500 text-[10px] font-bold mt-2 uppercase tracking-widest italic">✓ Pro Features Active</p>}
                                 </div>
-                                <a href="privacy.html" className="block text-center text-[10px] opacity-20 underline uppercase">Privacy Policy</a>
+                                <div className="p-4 bg-white/5 rounded-xl space-y-4">
+                                    <p className="text-[10px] font-bold opacity-40 uppercase">Hardware Defaults</p>
+                                    <input type="number" placeholder="Bar Weight" className="w-full" value={state.settings.barWeight} onChange={e => setState({...state, settings:{...state.settings, barWeight: e.target.value}})} />
+                                    <input type="number" placeholder="Rest Seconds" className="w-full" value={state.settings.restSeconds} onChange={e => setState({...state, settings:{...state.settings, restSeconds: e.target.value}})} />
+                                </div>
+                                <div className="p-4 border border-blue-500/30 rounded-xl space-y-2">
+                                    <button onClick={() => { navigator.clipboard.writeText(JSON.stringify(state)); alert("Backup Copied!"); }} className="w-full bg-white/5 p-3 rounded font-bold text-[10px] uppercase">Export Backup Code</button>
+                                    <button onClick={() => { const code = prompt("Paste backup code:"); if(code) { setState(JSON.parse(code)); alert("Restored!"); } }} className="w-full bg-white/5 p-3 rounded font-bold text-[10px] uppercase">Import Data</button>
+                                </div>
                             </div>
                         )}
                     </main>
 
                     {libOpen && (
-                        <div className="fixed inset-0 bg-black z-50 p-6 overflow-y-auto text-left">
-                            <div className="flex justify-between items-center mb-8"><h2 className="text-xl font-bold uppercase italic">Exercise List</h2><button onClick={()=>setLibOpen(false)} className="text-3xl">&times;</button></div>
+                        <div className="fixed inset-0 bg-black z-50 p-6 overflow-y-auto">
+                            <div className="flex justify-between items-center mb-8"><h2 className="text-xl font-bold uppercase italic">Library</h2><button onClick={()=>setLibOpen(false)} className="text-3xl">&times;</button></div>
                             {Object.entries(state.lib).map(([c, es]) => (
                                 <div key={c} className="mb-6"><p className="text-blue-500 text-[10px] font-bold mb-3 uppercase tracking-widest">{c}</p>
                                 {es.map(en => (
-                                    <button key={en} onClick={()=>{
-                                        const ns={...state}; ns.days[dIdx].ex.push({name:en, sets:[{w:'',r:'',done:false}]}); 
-                                        setState(ns); setLibOpen(false);
-                                    }} className="w-full text-left p-5 bg-white/5 mb-2 rounded-xl font-bold text-xs uppercase border border-white/5">{en}</button>
+                                    <button key={en} onClick={()=>{const ns={...state}; ns.days[dIdx].ex.push({name:en, sets:[{w:'',r:'',done:false,n:''}]}); setState(ns); setLibOpen(false);}} className="w-full text-left p-5 bg-white/5 mb-2 rounded-xl font-bold text-xs uppercase border border-white/5">{en}</button>
                                 ))}</div>
                             ))}
                         </div>
                     )}
 
                     {timer > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 z-50">
-                            <div className="bg-blue-600 p-6 flex justify-between items-center shadow-2xl">
-                                <span className="text-4xl font-mono font-black">{Math.floor(timer/60)}:{(timer%60).toString().padStart(2,'0')}</span>
-                                <button onClick={()=>setTimer(0)} className="bg-white/20 px-4 py-2 rounded-lg font-bold text-xs uppercase">Skip Timer</button>
-                            </div>
-                            {!state.isPro && (
-                                <div className="bg-white p-2 flex flex-col items-center border-t border-gray-200">
-                                    <span className="text-[8px] text-gray-500 uppercase font-bold mb-1">Advertisement</span>
-                                    {/* REPLACE DATA ATTRIBUTES BELOW WITH YOUR OWN ID */}
-                                    <ins className="adsbygoogle" style={{display:'inline-block',width:'320px',height:'50px'}} data-ad-client="ca-pub-REPLACE_WITH_YOUR_ID" data-ad-slot="REPLACE_WITH_YOUR_SLOT_ID"></ins>
-                                </div>
-                            )}
+                        <div className="fixed bottom-0 left-0 right-0 z-50 bg-blue-600 p-6 flex flex-col items-center">
+                            <div className="flex justify-between w-full items-center mb-4"><span className="text-4xl font-mono font-black">{Math.floor(timer/60)}:{(timer%60).toString().padStart(2,'0')}</span><button onClick={()=>setTimer(0)} className="bg-white/20 px-4 py-2 rounded-lg font-bold text-xs uppercase">Skip</button></div>
+                            {!state.isPro && <ins className="adsbygoogle" style={{display:'inline-block',width:'320px',height:'50px'}} data-ad-client="ca-pub-REPLACE" data-ad-slot="REPLACE"></ins>}
                         </div>
                     )}
                 </div>
