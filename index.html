@@ -12,17 +12,18 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-REPLACE_WITH_YOUR_ID" crossorigin="anonymous"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; touch-action: manipulation; }
+        body { background: #000; color: #fff; font-family: -apple-system, system-ui, sans-serif; touch-action: manipulation; }
         .tab-active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
         .ad-box { background: #fff; display: flex; flex-direction: column; align-items: center; padding: 10px 0; border-top: 1px solid #ddd; }
-        input { background: #111 !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 8px; padding: 12px; font-weight: bold; }
+        input { background: #111 !important; border: 1px solid #333 !important; color: #fff !important; border-radius: 10px; padding: 14px; font-weight: bold; font-size: 16px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body>
     <div id="root"></div>
     <script type="text/babel">
         const { useState, useEffect } = React;
-        const S_KEY = "zerolog_final_v47";
+        const S_KEY = "zerolog_v49_final";
         const PRO_KEY = "GAINS2026";
 
         function App() {
@@ -41,7 +42,13 @@
                         { id: 'd6', label: 'Sat', title: 'Active', ex: [] },
                         { id: 'd7', label: 'Sun', title: 'Rest Day', ex: [] }
                     ],
-                    lib: { "Main": ["Bench Press", "Squat", "Deadlift", "OHP"], "Arms": ["Curls", "Pushdowns"] }
+                    lib: { 
+                        "Chest": ["Bench Press", "Dumbbell Fly", "Incline Press"],
+                        "Back": ["Deadlift", "Lat Pulldown", "Rows"],
+                        "Legs": ["Squat", "Leg Press", "Leg Curl"],
+                        "Shoulders": ["OHP", "Lateral Raise"],
+                        "Arms": ["Bicep Curl", "Tricep Pushdown"]
+                    }
                 };
             });
 
@@ -56,20 +63,29 @@
             useEffect(() => {
                 let itv = null;
                 if (timer > 0) itv = setInterval(() => setTimer(t => t - 1), 1000);
-                else if (timer === 0 && itv !== null) { clearInterval(itv); }
+                else if (timer === 0 && itv !== null) { 
+                    if (navigator.vibrate) navigator.vibrate([400, 200, 400]);
+                    clearInterval(itv); 
+                }
                 return () => clearInterval(itv);
             }, [timer]);
 
+            const getPlates = (w) => {
+                const weight = parseFloat(w) || 0;
+                const perSide = (weight - state.settings.barWeight) / 2;
+                return perSide > 0 ? `${perSide.toFixed(2)}kg per side` : "Bar Only";
+            };
+
             const logWorkout = () => {
-                let volume = 0;
+                let vol = 0;
                 state.days[dIdx].ex.forEach(e => {
                     e.sets.filter(s => s.done).forEach(s => {
-                        volume += (parseFloat(s.w || 0) * parseFloat(s.r || 0)) + parseFloat(state.settings.barWeight);
+                        vol += (parseFloat(s.w || 0) * parseFloat(s.r || 0));
                     });
                 });
-                if (volume > 0) {
+                if (vol > 0) {
                     const ns = {...state};
-                    ns.history.push({ date: new Date().toLocaleDateString(), title: state.days[dIdx].title, vol: volume.toFixed(1) });
+                    ns.history.push({ date: new Date().toLocaleDateString(), title: state.days[dIdx].title, vol: vol.toFixed(0) });
                     ns.days[dIdx].ex.forEach(e => e.sets.forEach(s => s.done = false));
                     setState(ns); setView('history'); confetti();
                 }
@@ -78,51 +94,57 @@
             const cur = state.days[dIdx];
 
             return (
-                <div className="min-h-screen flex flex-col">
+                <div className="min-h-screen flex flex-col bg-black">
                     <nav className="flex border-b border-white/10 sticky top-0 bg-black z-40">
                         {['workout', 'history', 'settings'].map(v => (
-                            <button key={v} onClick={() => setView(v)} className={`flex-1 p-4 font-bold text-[10px] uppercase tracking-widest ${view === v ? 'tab-active' : 'text-gray-500'}`}>{v}</button>
+                            <button key={v} onClick={() => setView(v)} className={`flex-1 p-4 font-bold text-[11px] uppercase tracking-widest ${view === v ? 'tab-active' : 'text-gray-600'}`}>{v}</button>
                         ))}
                     </nav>
 
-                    <main className="flex-1 p-4 pb-40 max-w-md mx-auto w-full">
+                    <main className="flex-1 p-4 pb-60 max-w-md mx-auto w-full">
                         {view === 'workout' && (
                             <div>
                                 <div className="flex gap-2 overflow-x-auto mb-6 no-scrollbar">
                                     {state.days.map((d, i) => (
-                                        <button key={i} onClick={() => setDIdx(i)} className={`px-4 py-2 rounded-xl text-[10px] font-bold ${dIdx === i ? 'bg-blue-600' : 'bg-white/5 opacity-40'}`}>{d.label}</button>
+                                        <button key={i} onClick={() => setDIdx(i)} className={`px-4 py-2 rounded-xl text-[10px] font-bold whitespace-nowrap ${dIdx === i ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-500'}`}>{d.label}</button>
                                     ))}
                                 </div>
                                 <div className="flex justify-between items-center mb-6">
-                                    <h1 className="text-2xl font-black italic uppercase">{cur.title}</h1>
-                                    <button onClick={() => setLibOpen(true)} className="bg-blue-600 w-10 h-10 rounded-full font-bold text-xl">+</button>
+                                    <h1 className="text-2xl font-black italic uppercase tracking-tighter">{cur.title}</h1>
+                                    <button onClick={() => setLibOpen(true)} className="bg-blue-600 w-11 h-11 rounded-full font-bold text-2xl shadow-lg shadow-blue-900/20">+</button>
                                 </div>
                                 {cur.ex.map((e, ei) => (
-                                    <div key={ei} className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
-                                        <p className="font-bold text-blue-500 text-xs mb-4 uppercase tracking-widest">{e.name}</p>
+                                    <div key={`${e.name}-${ei}`} className="bg-white/5 border border-white/10 rounded-2xl p-4 mb-4">
+                                        <div className="flex justify-between mb-4">
+                                            <p className="font-bold text-blue-500 text-xs uppercase tracking-widest">{e.name}</p>
+                                            <button onClick={() => {if(confirm("Delete?")){const ns={...state}; ns.days[dIdx].ex.splice(ei,1); setState(ns);}}} className="text-white/10">&times;</button>
+                                        </div>
                                         {e.sets.map((s, si) => (
-                                            <div key={si} className="flex gap-2 mb-2">
-                                                <input type="number" placeholder="kg" className="w-full" value={s.w} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].w = x.target.value; setState(ns);}} />
-                                                <input type="number" placeholder="reps" className="w-full" value={s.r} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].r = x.target.value; setState(ns);}} />
-                                                <button onClick={() => {
-                                                    const ns = {...state}; const t = ns.days[dIdx].ex[ei].sets[si];
-                                                    t.done = !t.done; if(t.done) setTimer(state.settings.restSeconds); setState(ns);
-                                                }} className={`w-16 rounded-xl ${s.done ? 'bg-blue-600 border-none' : 'border border-white/20'}`}>{s.done ? '✓' : ''}</button>
+                                            <div key={si} className="mb-4">
+                                                <div className="flex gap-2 mb-1">
+                                                    <input type="number" placeholder="kg" className="w-full" value={s.w} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].w = x.target.value; setState(ns);}} />
+                                                    <input type="number" placeholder="reps" className="w-full" value={s.r} onChange={x => {const ns={...state}; ns.days[dIdx].ex[ei].sets[si].r = x.target.value; setState(ns);}} />
+                                                    <button onClick={() => {
+                                                        const ns = {...state}; const t = ns.days[dIdx].ex[ei].sets[si];
+                                                        t.done = !t.done; if(t.done) setTimer(parseInt(state.settings.restSeconds)); setState(ns);
+                                                    }} className={`w-16 rounded-xl transition-all ${s.done ? 'bg-blue-600 border-none scale-95' : 'border border-white/20'}`}>{s.done ? '✓' : ''}</button>
+                                                </div>
+                                                <p className="text-[9px] text-gray-500 font-bold ml-1 uppercase tracking-tighter">{getPlates(s.w)}</p>
                                             </div>
                                         ))}
-                                        <button onClick={() => {const ns={...state}; ns.days[dIdx].ex[ei].sets.push({w:'', r:'', done:false}); setState(ns);}} className="w-full text-[9px] opacity-20 font-bold mt-2 uppercase tracking-widest">+ ADD SET</button>
+                                        <button onClick={() => {const ns={...state}; ns.days[dIdx].ex[ei].sets.push({w:'', r:'', done:false}); setState(ns);}} className="w-full text-[9px] opacity-20 font-bold mt-2 uppercase">+ ADD SET</button>
                                     </div>
                                 ))}
-                                {cur.ex.length > 0 && <button onClick={logWorkout} className="w-full bg-blue-600 p-4 rounded-xl font-bold mt-4 uppercase">Complete Session</button>}
+                                {cur.ex.length > 0 && <button onClick={logWorkout} className="w-full bg-blue-600 p-5 rounded-2xl font-black mt-4 uppercase tracking-widest shadow-xl">Finish Session</button>}
                             </div>
                         )}
 
                         {view === 'history' && (
                             <div className="space-y-3">
-                                {state.history.map((h, i) => (
-                                    <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5 flex justify-between">
-                                        <div><p className="font-bold text-xs uppercase">{h.title}</p><p className="text-[10px] opacity-30">{h.date}</p></div>
-                                        <p className="text-blue-500 font-bold">{h.vol}kg</p>
+                                {[...state.history].reverse().map((h, i) => (
+                                    <div key={i} className="p-4 bg-white/5 rounded-xl border border-white/5 flex justify-between items-center">
+                                        <div><p className="font-bold text-xs uppercase">{h.title}</p><p className="text-[10px] opacity-30 font-mono">{h.date}</p></div>
+                                        <p className="text-blue-500 font-black">{h.vol} KG</p>
                                     </div>
                                 ))}
                             </div>
@@ -130,57 +152,50 @@
 
                         {view === 'settings' && (
                             <div className="space-y-8">
-                                <h2 className="text-xl font-black italic uppercase text-blue-500">App Settings</h2>
-                                
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase opacity-50">Rest Timer (Seconds)</label>
-                                    <input type="number" className="w-full" value={state.settings.restSeconds} 
-                                        onChange={e => setState({...state, settings:{...state.settings, restSeconds: parseInt(e.target.value) || 0}})} />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase opacity-50">Default Barbell Weight (kg)</label>
-                                    <input type="number" className="w-full" value={state.settings.barWeight} 
-                                        onChange={e => setState({...state, settings:{...state.settings, barWeight: parseInt(e.target.value) || 0}})} />
-                                </div>
-
-                                <div className="pt-6 border-t border-white/10">
-                                    <label className="text-[10px] font-bold uppercase text-blue-500 block mb-2">Pro Unlock Code</label>
-                                    <div className="flex gap-2">
-                                        <input type="text" placeholder="Enter Code" className="flex-1" onChange={e => setPromo(e.target.value)} />
-                                        <button onClick={() => { if(promo.toUpperCase() === PRO_KEY) { setState({...state, isPro:true}); alert("Pro Activated!"); } else { alert("Wrong code"); } }} className="bg-blue-600 px-6 rounded-lg font-bold text-xs">ACTIVATE</button>
+                                <div className="space-y-4">
+                                    <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                                        <label className="text-[10px] font-bold uppercase opacity-50 block mb-2">Rest Duration (Seconds)</label>
+                                        <input type="number" className="w-full" value={state.settings.restSeconds} onChange={e => setState({...state, settings:{...state.settings, restSeconds: e.target.value}})} />
                                     </div>
-                                    {state.isPro && <p className="text-green-500 text-[10px] mt-2 font-bold italic underline">PRO STATUS: ACTIVE (ADS DISABLED)</p>}
+                                    <div className="p-5 bg-white/5 rounded-2xl border border-white/10">
+                                        <label className="text-[10px] font-bold uppercase opacity-50 block mb-2">Barbell Weight (KG)</label>
+                                        <input type="number" className="w-full" value={state.settings.barWeight} onChange={e => setState({...state, settings:{...state.settings, barWeight: e.target.value}})} />
+                                    </div>
                                 </div>
-
-                                <div className="pt-10 opacity-30">
-                                    <a href="privacy.html" className="text-[10px] underline font-bold uppercase tracking-widest">Privacy Policy</a>
+                                <div className="p-5 bg-white/5 rounded-2xl border border-blue-500/20">
+                                    <label className="text-[10px] font-bold uppercase text-blue-500 block mb-3">Premium Activation</label>
+                                    <div className="flex gap-2">
+                                        <input type="text" placeholder="Promo Code" className="flex-1" onChange={e => setPromo(e.target.value)} />
+                                        <button onClick={() => { if(promo.toUpperCase() === PRO_KEY) { setState({...state, isPro:true}); alert("Pro Features Unlocked!"); } }} className="bg-blue-600 px-6 rounded-xl font-bold text-xs">OK</button>
+                                    </div>
+                                    {state.isPro && <p className="text-green-500 text-[10px] mt-3 font-bold uppercase italic">✓ Ad-Free Pro Active</p>}
                                 </div>
+                                <div className="text-center opacity-20"><a href="privacy.html" className="text-[10px] underline font-bold uppercase">Privacy & Legal</a></div>
                             </div>
                         )}
                     </main>
 
                     {libOpen && (
                         <div className="fixed inset-0 bg-black z-50 p-6 overflow-y-auto">
-                            <div className="flex justify-between items-center mb-8 border-b border-white/10 pb-4"><h2 className="text-xl font-bold uppercase italic">Exercise Library</h2><button onClick={()=>setLibOpen(false)} className="text-3xl">&times;</button></div>
+                            <div className="flex justify-between items-center mb-8"><h2 className="text-xl font-black italic uppercase">Exercises</h2><button onClick={()=>setLibOpen(false)} className="text-4xl">&times;</button></div>
                             {Object.entries(state.lib).map(([c, es]) => (
-                                <div key={c} className="mb-6"><p className="text-blue-500 text-[10px] font-bold mb-3 uppercase tracking-widest">{c}</p>
+                                <div key={c} className="mb-6"><p className="text-blue-500 text-[10px] font-black mb-3 uppercase tracking-widest">{c}</p>
                                 {es.map(en => (
-                                    <button key={en} onClick={()=>{const ns={...state}; ns.days[dIdx].ex.push({name:en, sets:[{w:'',r:'',done:false}]}); setState(ns); setLibOpen(false);}} className="w-full text-left p-5 bg-white/5 mb-2 rounded-xl font-bold text-xs uppercase border border-white/5">{en}</button>
+                                    <button key={en} onClick={()=>{const ns={...state}; ns.days[dIdx].ex.push({name:en, sets:[{w:'',r:'',done:false}]}); setState(ns); setLibOpen(false);}} className="w-full text-left p-5 bg-white/5 mb-3 rounded-2xl font-bold text-xs uppercase border border-white/10 active:bg-blue-600">{en}</button>
                                 ))}</div>
                             ))}
                         </div>
                     )}
 
                     {timer > 0 && (
-                        <div className="fixed bottom-0 left-0 right-0 z-50 animate-bounce-in">
-                            <div className="bg-blue-600 p-6 flex justify-between items-center shadow-2xl">
-                                <span className="text-4xl font-mono font-black">{Math.floor(timer/60)}:{(timer%60).toString().padStart(2,'0')}</span>
-                                <button onClick={()=>setTimer(0)} className="bg-white/20 px-4 py-2 rounded-lg font-bold text-[10px] uppercase">Skip Timer</button>
+                        <div className="fixed bottom-0 left-0 right-0 z-50">
+                            <div className="bg-blue-600 p-7 flex justify-between items-center shadow-2xl">
+                                <span className="text-5xl font-mono font-black tracking-tighter">{Math.floor(timer/60)}:{(timer%60).toString().padStart(2,'0')}</span>
+                                <button onClick={()=>setTimer(0)} className="bg-black/20 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest">Skip</button>
                             </div>
                             {!state.isPro && (
                                 <div className="ad-box">
-                                    <span className="text-[8px] text-gray-400 mb-2 uppercase tracking-widest">Sponsored</span>
+                                    <span className="text-[8px] text-gray-400 mb-2 uppercase font-bold">Advertisement</span>
                                     <ins className="adsbygoogle" style={{display:'inline-block',width:'320px',height:'50px'}} data-ad-client="ca-pub-REPLACE_WITH_YOUR_ID" data-ad-slot="REPLACE_WITH_YOUR_SLOT_ID"></ins>
                                 </div>
                             )}
