@@ -11,11 +11,9 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
         body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-bottom: 220px; }
 
-        /* Branding */
+        /* Navigation */
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         h1 { font-style: italic; font-weight: 900; letter-spacing: -1px; margin: 0; text-transform: uppercase; }
-
-        /* Navigation Tabs */
         .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #222; }
         .tab { padding: 12px 0; color: var(--dim); cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; flex: 1; text-align: center; }
         .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
@@ -25,29 +23,30 @@
         .day { padding: 8px 16px; border-radius: 20px; background: var(--card); font-size: 12px; cursor: pointer; color: var(--dim); white-space: nowrap; }
         .day.active { background: var(--accent); color: white; }
 
-        /* Inline Exercise Adder (Fixes bigviv.github.io popup) */
+        /* BUG FIX: Inline Adder replaces browser prompt */
         .add-ex-container { background: #111; padding: 12px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 10px; border: 1px solid #222; }
         .add-ex-container input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 14px; }
 
-        /* Workout Cards */
+        /* Workout UI */
         .exercise-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #1a1a1a; }
         .ex-header { display: flex; justify-content: space-between; color: var(--accent); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; }
         .set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 10px; background: #111; border-radius: 6px; }
         .delete-set { color: #ff4444; font-weight: bold; padding: 0 10px; cursor: pointer; font-size: 18px; }
-        
         .input-row { display: flex; gap: 10px; margin-top: 15px; }
-        .input-row input { background: #111; border: 1px solid #222; color: white; padding: 12px; border-radius: 8px; width: 100%; text-align: center; }
+        .input-row input { background: #111; border: 1px solid #222; color: white; padding: 12px; border-radius: 8px; width: 100%; text-align: center; font-size: 16px; }
 
-        /* Buttons */
+        /* Recovery Mode Styling */
+        .recovery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .recovery-tip { background: #111; padding: 10px; border-radius: 8px; border: 1px solid #222; font-size: 12px; }
+        .recovery-tip strong { color: var(--accent); display: block; margin-bottom: 4px; }
+
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .btn-full { width: 100%; padding: 18px; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Rest Timer Banner */
         #timer-banner { position: fixed; bottom: 70px; left: 10px; right: 10px; background: var(--accent); color: white; padding: 15px; display: none; justify-content: space-between; align-items: center; z-index: 1001; border-radius: 12px; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
         .timer-presets { display: flex; gap: 5px; }
         .timer-presets button { padding: 6px 10px; font-size: 11px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
 
-        /* Ads */
         .ad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; height: 60px; text-align: center; z-index: 1000; border-top: 1px solid #222; padding-top: 5px; }
     </style>
 </head>
@@ -64,7 +63,7 @@
     <div id="section-workout">
         <div class="day-picker" id="dayPicker"></div>
         <div class="add-ex-container">
-            <input type="text" id="new-ex-name" placeholder="Enter Exercise Name...">
+            <input type="text" id="new-ex-name" placeholder="Quick Add Exercise Name...">
             <button onclick="addExercise()">ADD</button>
         </div>
         <div id="workoutArea"></div>
@@ -74,8 +73,8 @@
     <div id="section-calculator" style="display:none; padding-top: 10px;">
         <div class="exercise-card">
             <h3 style="margin-top:0">Plate Calculator</h3>
-            <input type="number" id="target-weight" placeholder="Total Weight (kg)" style="width:100%; background:#111; border:1px solid #222; color:white; padding:15px; border-radius:8px; margin-bottom:10px;">
-            <div id="calc-result" style="margin:20px 0; text-align:center; color:var(--accent); font-weight:bold; font-size:20px;"></div>
+            <input type="number" id="target-weight" placeholder="Total kg" style="width:100%; background:#111; border:1px solid #222; color:white; padding:15px; border-radius:8px; margin-bottom:10px;">
+            <div id="calc-result" style="margin:20px 0; text-align:center; color:var(--accent); font-weight:bold; font-size:22px;"></div>
             <button onclick="calcPlates()" style="width:100%">Calculate Per Side</button>
         </div>
     </div>
@@ -83,19 +82,15 @@
     <div id="section-settings" style="display:none; padding-top: 10px;">
         <div class="exercise-card">
             <h3>App Control</h3>
-            <p style="color:var(--dim); font-size:12px;">Version: 1.0.0 (Pro)</p>
-            <button class="btn-full" style="background:#222; border: 1px solid #444;" onclick="if(confirm('Clear all logs?')){localStorage.clear(); location.reload();}">Reset App Data</button>
-        </div>
-        <div class="exercise-card">
-            <h3>Support</h3>
-            <p style="color:var(--dim); font-size:12px;">Contact support for issues or feature requests.</p>
+            <button class="btn-full" style="background:#222; border: 1px solid #333;" onclick="exportData()">Export Backup (JSON)</button>
+            <button class="btn-full" style="background:#b91c1c; margin-top:20px;" onclick="if(confirm('Wipe all data?')){localStorage.clear(); location.reload();}">Reset All Data</button>
         </div>
     </div>
 
     <div id="timer-banner">
         <div>
-            <div style="font-size:10px; opacity:0.8">RESTING</div>
-            <div id="timer-display" style="font-size:22px; font-weight:900">0:00</div>
+            <div style="font-size:10px; opacity:0.8; font-weight:bold;">REST</div>
+            <div id="timer-display" style="font-size:24px; font-weight:900">0:00</div>
         </div>
         <div class="timer-presets">
             <button onclick="startTimer(60)">60s</button>
@@ -114,7 +109,6 @@
         let workouts = JSON.parse(localStorage.getItem('zerolog_data')) || [];
         let restDays = JSON.parse(localStorage.getItem('zerolog_rest_days')) || [];
         let timerInterval;
-
         const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
         function init() {
@@ -126,34 +120,29 @@
         function setDay(d) { currentDay = d; init(); }
 
         function showSection(s) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('tab-' + s).classList.add('active');
             document.getElementById('section-workout').style.display = s === 'workout' ? 'block' : 'none';
             document.getElementById('section-calculator').style.display = s === 'calculator' ? 'block' : 'none';
             document.getElementById('section-settings').style.display = s === 'settings' ? 'block' : 'none';
-            
-            document.getElementById('tab-workout').classList.toggle('active', s === 'workout');
-            document.getElementById('tab-calculator').classList.toggle('active', s === 'calculator');
-            document.getElementById('tab-settings').classList.toggle('active', s === 'settings');
         }
 
         function addExercise() {
             const input = document.getElementById('new-ex-name');
             if (input.value.trim()) {
                 workouts.push({ id: Date.now(), day: currentDay, name: input.value.trim(), sets: [] });
-                input.value = '';
-                save();
+                input.value = ''; save();
             }
         }
 
         function addSet(exId, w, r) {
             if (!w || !r) return;
             workouts.find(ex => ex.id === exId).sets.push({ weight: w, reps: r });
-            save();
-            startTimer(90);
+            save(); startTimer(90);
         }
 
         function deleteSet(exId, idx) {
-            workouts.find(ex => ex.id === exId).sets.splice(idx, 1);
-            save();
+            workouts.find(ex => ex.id === exId).sets.splice(idx, 1); save();
         }
 
         function toggleRestDay() {
@@ -179,21 +168,36 @@
 
         function calcPlates() {
             let t = document.getElementById('target-weight').value;
-            document.getElementById('calc-result').innerText = t >= 20 ? `${(t-20)/2} kg per side` : "Min 20kg (Bar)";
+            document.getElementById('calc-result').innerText = t >= 20 ? `${(t-20)/2} kg Per Side` : "Min 20kg (Bar)";
         }
 
-        function save() { 
-            localStorage.setItem('zerolog_data', JSON.stringify(workouts)); 
-            render(); 
+        function exportData() {
+            const blob = new Blob([JSON.stringify(workouts)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'zerolog_backup.json'; a.click();
         }
+
+        function save() { localStorage.setItem('zerolog_data', JSON.stringify(workouts)); render(); }
 
         function render() {
             const area = document.getElementById('workoutArea');
             const isRest = restDays.includes(currentDay);
             document.getElementById('rest-btn-toggle').innerText = isRest ? "Resume Training Today" : "Mark as Rest Day";
+            document.querySelector('.add-ex-container').style.display = isRest ? 'none' : 'flex';
 
             if (isRest) {
-                area.innerHTML = `<div class="exercise-card" style="text-align:center; padding:40px; border: 1px dashed #333">🧘 Today is a Recovery Day.</div>`;
+                area.innerHTML = `
+                    <div class="exercise-card" style="text-align:center;">
+                        <div style="font-size:30px; margin-bottom:10px;">🧘</div>
+                        <h3 style="margin:0;">Recovery Mode Active</h3>
+                        <p style="color:var(--dim); font-size:13px;">Listen to your body today.</p>
+                        <div class="recovery-grid">
+                            <div class="recovery-tip"><strong>Hydration</strong>2-3L water + electrolytes.</div>
+                            <div class="recovery-tip"><strong>Movement</strong>15 min light walk or yoga.</div>
+                            <div class="recovery-tip"><strong>Nutrition</strong>Focus on protein & micronutrients.</div>
+                            <div class="recovery-tip"><strong>Sleep</strong>Aim for 8+ hours tonight.</div>
+                        </div>
+                    </div>`;
                 return;
             }
 
@@ -201,7 +205,7 @@
                 <div class="exercise-card">
                     <div class="ex-header">
                         <span>${ex.name}</span>
-                        <span onclick="workouts=workouts.filter(w=>w.id!=${ex.id});save()" style="cursor:pointer">✕</span>
+                        <span onclick="if(confirm('Delete?')){workouts=workouts.filter(w=>w.id!=${ex.id});save();}" style="cursor:pointer">✕</span>
                     </div>
                     ${ex.sets.map((s, i) => `<div class="set-row"><span>Set ${i+1}: ${s.weight}kg x ${s.reps}</span><span class="delete-set" onclick="deleteSet(${ex.id}, ${i})">×</span></div>`).join('')}
                     <div class="input-row">
@@ -211,7 +215,6 @@
                     </div>
                 </div>`).join('');
         }
-
         init();
     </script>
 </body>
