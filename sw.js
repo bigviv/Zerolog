@@ -1,7 +1,19 @@
-const CACHE_NAME = 'zerolog-cache-v1';
-// This helps the app work even if the gym has no signal
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
+const CACHE_NAME = 'zerolog-v1';
+const ASSETS = [
+  '/zerolog/index.html',
+  '/zerolog/manifest.json',
+  '/zerolog/logo512.png',
+  '/zerolog/screenshot.png'
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then(res => res || fetch(e.request))
   );
 });
