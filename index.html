@@ -11,7 +11,7 @@
     <style>
         :root { --bg: #000; --card: #0a0a0a; --accent: #2563eb; --success: #16a34a; --text: #fff; --dim: #888; --danger: #b91c1c; }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
-        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-bottom: 140px; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-bottom: 20px; }
         h1 { font-style: italic; font-weight: 900; letter-spacing: -1px; margin: 0; text-transform: uppercase; }
         .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #222; }
         .tab { padding: 12px 0; color: var(--dim); cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; flex: 1; text-align: center; }
@@ -35,11 +35,12 @@
         .recovery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .recovery-tip { background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; font-size: 12px; text-align: left; }
         .recovery-tip strong { display: block; color: var(--accent); margin-bottom: 5px; }
-        #timer-banner { position: fixed; bottom: 75px; left: 10px; right: 10px; background: var(--accent); color: white; padding: 15px; display: none; justify-content: space-between; align-items: center; z-index: 1001; border-radius: 12px; }
+        #timer-banner { position: fixed; bottom: 10px; left: 10px; right: 10px; background: var(--accent); color: white; padding: 15px; display: none; flex-direction: column; gap: 15px; z-index: 1001; border-radius: 12px; }
+        .timer-content { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .timer-ad { background: #fff; border-radius: 8px; padding: 5px; text-align: center; min-height: 60px; display: flex; align-items: center; justify-content: center; }
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-full { width: 100%; padding: 18px; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+        .btn-full { width: 100%; padding: 18px; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; margin-bottom: 200px; }
         .btn-success { background: var(--success); }
-        .ad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; height: 60px; text-align: center; z-index: 1000; border-top: 1px solid #222; padding-top: 5px; }
         .empty-state { text-align: center; padding: 40px 20px; color: var(--dim); }
         .empty-state-icon { font-size: 48px; margin-bottom: 15px; opacity: 0.5; }
         .empty-state h3 { color: var(--text); margin-bottom: 10px; }
@@ -60,8 +61,6 @@
         .calc-input-group { margin-bottom: 15px; }
         .calc-input-group label { display: block; color: var(--dim); font-size: 11px; text-transform: uppercase; margin-bottom: 8px; font-weight: bold; }
         .calc-input-group select, .calc-input-group input { width: 100%; background: #111; border: 1px solid #222; color: white; padding: 15px; border-radius: 8px; font-size: 16px; }
-        .timer-custom { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
-        .timer-custom input { width: 80px; background: #111; border: 1px solid #222; color: white; padding: 8px; border-radius: 6px; text-align: center; }
         .file-input-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; }
         .file-input-wrapper input[type=file] { position: absolute; left: -9999px; }
         .file-input-label { display: block; width: 100%; padding: 18px; background: #222; border: 1px solid #333; color: white; text-align: center; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; margin-bottom: 15px; }
@@ -147,24 +146,24 @@
     </div>
 
     <div id="timer-banner">
-        <div>
-            <div style="font-size:10px; opacity:0.8;">RESTING</div>
-            <div id="timer-display" style="font-size:24px; font-weight:900">0:00</div>
+        <div class="timer-content">
+            <div>
+                <div style="font-size:10px; opacity:0.8;">RESTING</div>
+                <div id="timer-display" style="font-size:24px; font-weight:900">0:00</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap: wrap;">
+                <button onclick="startTimer(60)">60s</button>
+                <button onclick="startTimer(90)">90s</button>
+                <button onclick="startTimer(180)">180s</button>
+                <button onclick="stopTimer()" style="background:#000">SKIP</button>
+            </div>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap: wrap;">
-            <button onclick="startTimer(60)">60s</button>
-            <button onclick="startTimer(90)">90s</button>
-            <button onclick="startTimer(180)">180s</button>
-            <button onclick="stopTimer()" style="background:#000">SKIP</button>
+        <div class="timer-ad">
+            <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-9180492943097575" data-ad-slot="6115261796"></ins>
         </div>
     </div>
 
     <div id="success-indicator" class="success-indicator">✓ Set Added!</div>
-
-    <div class="ad-container">
-        <ins class="adsbygoogle" style="display:inline-block;width:320px;height:50px" data-ad-client="ca-pub-9180492943097575" data-ad-slot="6115261796"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
 
     <script>
         // ========== STATE MANAGEMENT ==========
@@ -174,7 +173,7 @@
         let dayLabels = JSON.parse(localStorage.getItem('zerolog_day_labels')) || {};
         let history = JSON.parse(localStorage.getItem('zerolog_history')) || [];
         let timerInterval;
-        let timerAudio = null;
+        let adLoaded = false;
 
         const daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
         const quickExList = ['Bench Press', 'Squat', 'Deadlift', 'Shoulder Press', 'Lat Pulldown', 'Barbell Row', 'Leg Press', 'Bicep Curl'];
@@ -189,7 +188,6 @@
             ).join('');
             document.getElementById('day-label-input').value = dayLabels[currentDay] || '';
             
-            // Show repeat button if there's a last workout for this day
             const lastWorkout = getLastWorkoutForDay(currentDay);
             const repeatBtn = document.getElementById('repeat-btn');
             if (lastWorkout && !restDays.includes(currentDay)) {
@@ -206,13 +204,11 @@
             if (e.key === 'Enter') {
                 const activeElement = document.activeElement;
                 
-                // Add exercise on Enter in new exercise input
                 if (activeElement.id === 'new-ex-name') {
                     e.preventDefault();
                     addExercise();
                 }
                 
-                // Add set on Enter in weight/reps inputs
                 if (activeElement.id && (activeElement.id.startsWith('w-') || activeElement.id.startsWith('r-'))) {
                     e.preventDefault();
                     const exId = parseInt(activeElement.id.split('-')[1]);
@@ -273,7 +269,6 @@
                 save(); 
                 showSuccessIndicator();
                 startTimer(90);
-                // Select all text for easy editing
                 wInput.select();
                 wInput.focus();
             }
@@ -348,10 +343,19 @@
         // ========== TIMER ==========
         function startTimer(seconds) {
             clearInterval(timerInterval);
-            document.getElementById('timer-banner').style.display = 'flex';
-            let remaining = seconds;
+            const banner = document.getElementById('timer-banner');
+            banner.style.display = 'flex';
             
-            // Update title immediately
+            if (!adLoaded && typeof adsbygoogle !== 'undefined') {
+                try {
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    adLoaded = true;
+                } catch (e) {
+                    console.log('Ad load skipped');
+                }
+            }
+            
+            let remaining = seconds;
             updateTimerDisplay(remaining);
             
             timerInterval = setInterval(() => {
@@ -385,7 +389,6 @@
         }
 
         function playTimerSound() {
-            // Create a simple beep sound
             const audioContext = new (window.AudioContext || window.webkitAudioContext)();
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
@@ -419,7 +422,6 @@
             const perSide = (total - barWeight) / 2;
             resultDiv.innerText = `${perSide.toFixed(1)} kg/side`;
             
-            // Calculate plate breakdown
             const plates = [25, 20, 15, 10, 5, 2.5, 1.25, 0.5];
             let remaining = perSide;
             let breakdown = [];
@@ -451,7 +453,6 @@
                 return;
             }
             
-            // Epley Formula: 1RM = weight × (1 + reps/30)
             const oneRM = weight * (1 + reps / 30);
             resultDiv.innerText = `${oneRM.toFixed(1)} kg`;
         }
@@ -466,7 +467,6 @@
                 return;
             }
             
-            // Sort history by date descending
             const sortedHistory = [...history].sort((a, b) => new Date(b.date) - new Date(a.date));
             
             area.innerHTML = sortedHistory.map(workout => {
@@ -500,10 +500,7 @@
         }
 
         function checkIfPR(exerciseName, sets, currentDate) {
-            // Find max weight for this exercise
             const maxWeight = Math.max(...sets.map(s => parseFloat(s.weight)));
-            
-            // Check previous workouts for same exercise
             const previousWorkouts = history.filter(h => new Date(h.date) < new Date(currentDate));
             
             for (let workout of previousWorkouts) {
@@ -511,7 +508,7 @@
                     if (ex.name === exerciseName) {
                         const prevMax = Math.max(...ex.sets.map(s => parseFloat(s.weight)));
                         if (prevMax >= maxWeight) {
-                            return false; // Not a PR
+                            return false;
                         }
                     }
                 }
@@ -578,25 +575,21 @@
                     const data = JSON.parse(e.target.result);
                     
                     if (confirm('Import data? This will merge with your current data. Export first if you want to backup!')) {
-                        // Merge workouts
                         if (data.workouts) {
                             workouts = [...workouts, ...data.workouts];
                             localStorage.setItem('zerolog_data', JSON.stringify(workouts));
                         }
                         
-                        // Merge history
                         if (data.history) {
                             history = [...history, ...data.history];
                             localStorage.setItem('zerolog_history', JSON.stringify(history));
                         }
                         
-                        // Merge rest days
                         if (data.restDays) {
                             restDays = [...new Set([...restDays, ...data.restDays])];
                             localStorage.setItem('zerolog_rest_days', JSON.stringify(restDays));
                         }
                         
-                        // Merge day labels
                         if (data.dayLabels) {
                             dayLabels = {...dayLabels, ...data.dayLabels};
                             localStorage.setItem('zerolog_day_labels', JSON.stringify(dayLabels));
@@ -612,7 +605,6 @@
             };
             reader.readAsText(file);
             
-            // Reset file input
             event.target.value = '';
         }
 
