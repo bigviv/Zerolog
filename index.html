@@ -6,153 +6,68 @@
     <title>ZeroLog</title>
     
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9180492943097575" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 
     <style>
         :root {
             --bg: #000;
             --card: #0a0a0a;
             --accent: #2563eb;
+            --success: #16a34a;
             --text: #fff;
             --dim: #888;
             --danger: #b91c1c;
         }
 
-        * {
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; }
+        body { background: var(--bg); color: var(--text); margin: 0; padding: 20px; padding-bottom: 120px; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            padding-bottom: 120px; /* Space for Persistent Ad */
-        }
-
-        /* Branding & Navigation */
         .header { margin-bottom: 20px; }
         h1 { font-style: italic; font-weight: 900; letter-spacing: -1px; margin: 0; text-transform: uppercase; }
 
-        .tabs {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #222;
-        }
+        .tabs { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid #222; }
+        .tab { padding: 12px 0; color: var(--dim); cursor: pointer; font-size: 11px; text-transform: uppercase; font-weight: bold; flex: 1; text-align: center; }
+        .tab.active { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-        .tab {
-            padding: 12px 0;
-            color: var(--dim);
-            cursor: pointer;
-            font-size: 11px;
-            text-transform: uppercase;
-            font-weight: bold;
-            flex: 1;
-            text-align: center;
-        }
-
-        .tab.active {
-            color: var(--accent);
-            border-bottom: 2px solid var(--accent);
-        }
-
-        /* Inputs & Controls */
         .day-picker { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 15px; padding-bottom: 5px; }
         .day { padding: 8px 16px; border-radius: 20px; background: var(--card); font-size: 12px; cursor: pointer; color: var(--dim); white-space: nowrap; }
         .day.active { background: var(--accent); color: white; }
 
         .day-title-container input {
-            width: 100%;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid #222;
-            color: var(--accent);
-            font-size: 18px;
-            font-weight: bold;
-            padding: 10px 0;
-            outline: none;
-            margin-bottom: 15px;
+            width: 100%; background: transparent; border: none; border-bottom: 1px solid #222;
+            color: var(--accent); font-size: 18px; font-weight: bold; padding: 10px 0; outline: none; margin-bottom: 15px;
         }
 
-        .add-ex-container {
-            background: #111;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 10px;
-            display: flex;
-            gap: 10px;
-            border: 1px solid #222;
-        }
-
+        .add-ex-container { background: #111; padding: 12px; border-radius: 12px; margin-bottom: 10px; display: flex; gap: 10px; border: 1px solid #222; }
         .add-ex-container input { flex: 1; background: transparent; border: none; color: white; outline: none; font-size: 14px; }
 
         .quick-select { display: flex; gap: 8px; overflow-x: auto; margin-bottom: 20px; padding-bottom: 10px; }
         .q-btn { background: #222; color: #fff; border: 1px solid #333; padding: 6px 14px; border-radius: 6px; font-size: 11px; white-space: nowrap; cursor: pointer; }
 
-        /* Cards & Exercise UI */
         .exercise-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid #1a1a1a; }
         .ex-header { display: flex; justify-content: space-between; color: var(--accent); font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 15px; }
-        
         .set-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 10px; background: #111; border-radius: 6px; font-size: 14px; }
         .delete-btn { color: #ff4444; cursor: pointer; font-weight: bold; }
 
         .input-row { display: flex; gap: 10px; margin-top: 15px; }
         .input-row input { background: #111; border: 1px solid #222; color: white; padding: 12px; border-radius: 8px; width: 100%; text-align: center; }
 
-        .feel-select {
-            width: 100%;
-            background: #111;
-            border: 1px solid #222;
-            color: var(--dim);
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 15px;
-            font-size: 12px;
-        }
+        .feel-select { width: 100%; background: #111; border: 1px solid #222; color: var(--dim); padding: 10px; border-radius: 8px; margin-top: 15px; font-size: 12px; }
 
-        /* Recovery Mode */
         .recovery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .recovery-tip { background: #111; padding: 15px; border-radius: 8px; border: 1px solid #222; font-size: 12px; text-align: left; }
         .recovery-tip strong { display: block; color: var(--accent); margin-bottom: 5px; }
 
-        /* Timer Banner */
         #timer-banner {
-            position: fixed;
-            bottom: 70px;
-            left: 10px;
-            right: 10px;
-            background: var(--accent);
-            color: white;
-            padding: 15px;
-            display: none;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1001;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            position: fixed; bottom: 70px; left: 10px; right: 10px; background: var(--accent); color: white;
+            padding: 15px; display: none; justify-content: space-between; align-items: center; z-index: 1001; border-radius: 12px;
         }
 
-        .timer-btns { display: flex; gap: 8px; }
-        .timer-btns button { background: rgba(255,255,255,0.2); padding: 8px 12px; font-size: 12px; }
-
-        /* Buttons */
         button { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .btn-full { width: 100%; padding: 18px; text-transform: uppercase; letter-spacing: 1px; margin-top: 20px; }
+        .btn-full { width: 100%; padding: 18px; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px; }
+        .btn-success { background: var(--success); }
 
-        /* Persistent Ads */
-        .ad-container {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #000;
-            height: 60px;
-            text-align: center;
-            z-index: 1000;
-            border-top: 1px solid #222;
-            padding-top: 5px;
-        }
+        .ad-container { position: fixed; bottom: 0; left: 0; width: 100%; background: #000; height: 60px; text-align: center; z-index: 1000; border-top: 1px solid #222; padding-top: 5px; }
     </style>
 </head>
 <body>
@@ -168,7 +83,7 @@
     <div id="section-workout">
         <div class="day-picker" id="dayPicker"></div>
         <div class="day-title-container">
-            <input type="text" id="day-label-input" placeholder="Today's Focus (e.g. Upper Body Pull)" onchange="saveDayLabel()">
+            <input type="text" id="day-label-input" placeholder="Today's Focus..." onchange="saveDayLabel()">
         </div>
         <div class="add-ex-container">
             <input type="text" id="new-ex-name" placeholder="Add New Exercise...">
@@ -176,6 +91,9 @@
         </div>
         <div class="quick-select" id="quickSelect"></div>
         <div id="workoutArea"></div>
+        
+        <button class="btn-full btn-success" id="complete-btn" onclick="completeWorkout()" style="display:none;">Finish & Log Workout</button>
+        
         <button class="btn-full" id="rest-btn-toggle" onclick="toggleRestDay()">Mark as Rest Day</button>
     </div>
 
@@ -197,15 +115,8 @@
     </div>
 
     <div id="timer-banner">
-        <div>
-            <div style="font-size:10px; font-weight:bold; opacity:0.8;">RESTING</div>
-            <div id="timer-display" style="font-size:24px; font-weight:900">0:00</div>
-        </div>
-        <div class="timer-btns">
-            <button onclick="startTimer(60)">60s</button>
-            <button onclick="startTimer(180)">180s</button>
-            <button onclick="stopTimer()" style="background:#000">SKIP</button>
-        </div>
+        <div><div style="font-size:10px; opacity:0.8;">RESTING</div><div id="timer-display" style="font-size:24px; font-weight:900">0:00</div></div>
+        <div style="display:flex; gap:8px;"><button onclick="startTimer(60)">60s</button><button onclick="startTimer(180)">180s</button><button onclick="stopTimer()" style="background:#000">SKIP</button></div>
     </div>
 
     <div class="ad-container">
@@ -218,6 +129,7 @@
         let workouts = JSON.parse(localStorage.getItem('zerolog_data')) || [];
         let restDays = JSON.parse(localStorage.getItem('zerolog_rest_days')) || [];
         let dayLabels = JSON.parse(localStorage.getItem('zerolog_day_labels')) || {};
+        let history = JSON.parse(localStorage.getItem('zerolog_history')) || [];
         let timerInterval;
 
         const daysList = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -259,6 +171,21 @@
             }
         }
 
+        function completeWorkout() {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#2563eb', '#ffffff'] });
+            const session = {
+                date: new Date().toISOString(),
+                label: dayLabels[currentDay] || currentDay,
+                exercises: workouts.filter(ex => ex.day === currentDay)
+            };
+            history.push(session);
+            localStorage.setItem('zerolog_history', JSON.stringify(history));
+            
+            // Clear current day's exercises for tomorrow
+            workouts = workouts.filter(ex => ex.day !== currentDay);
+            save();
+        }
+
         function deleteSet(exId, index) { workouts.find(w => w.id === exId).sets.splice(index, 1); save(); }
         function updateFeeling(exId, val) { workouts.find(w => w.id === exId).feeling = val; save(); }
 
@@ -273,13 +200,10 @@
             clearInterval(timerInterval);
             document.getElementById('timer-banner').style.display = 'flex';
             let remaining = seconds;
-            const updateUI = () => {
+            timerInterval = setInterval(() => {
+                remaining--;
                 let m = Math.floor(remaining / 60); let s = remaining % 60;
                 document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
-            };
-            updateUI();
-            timerInterval = setInterval(() => {
-                remaining--; updateUI();
                 if (remaining <= 3 && remaining > 0) if (navigator.vibrate) navigator.vibrate(100);
                 if (remaining <= 0) stopTimer();
             }, 1000);
@@ -288,49 +212,37 @@
         function stopTimer() { clearInterval(timerInterval); document.getElementById('timer-banner').style.display = 'none'; }
         function calcPlates() { 
             const total = document.getElementById('target-weight').value;
-            document.getElementById('calc-result').innerText = total < 20 ? "Min 20kg" : `${(total - 20) / 2} kg per side`;
+            document.getElementById('calc-result').innerText = total < 20 ? "Min 20kg" : `${(total - 20) / 2} kg/side`;
         }
 
         function save() { localStorage.setItem('zerolog_data', JSON.stringify(workouts)); render(); }
         function resetData() { if (confirm("ZeroLog: Wipe all data?")) { localStorage.clear(); location.reload(); } }
         function exportData() {
-            const blob = new Blob([JSON.stringify(workouts)], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'zerolog_backup.json'; a.click();
+            const blob = new Blob([JSON.stringify({workouts, history})], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'zerolog_full_export.json'; a.click();
         }
 
         function render() {
             const area = document.getElementById('workoutArea');
             const isRest = restDays.includes(currentDay);
+            const dailyEx = workouts.filter(ex => ex.day === currentDay);
+            
             document.getElementById('rest-btn-toggle').innerText = isRest ? "Resume Training" : "Mark as Rest Day";
             document.querySelector('.add-ex-container').style.display = isRest ? 'none' : 'flex';
             document.querySelector('.quick-select').style.display = isRest ? 'none' : 'flex';
             document.querySelector('.day-title-container').style.display = isRest ? 'none' : 'block';
+            document.getElementById('complete-btn').style.display = (dailyEx.length > 0 && !isRest) ? 'block' : 'none';
 
             if (isRest) {
-                area.innerHTML = `
-                    <div class="exercise-card" style="text-align:center;">
-                        <div style="font-size:40px; margin-bottom:10px;">🧘</div>
-                        <h3 style="margin:0">Recovery Mode</h3>
-                        <p style="color:var(--dim); font-size:13px;">Recovery is a part of training.</p>
-                        <div class="recovery-grid">
-                            <div class="recovery-tip"><strong>Hydration</strong>2-3L Water + Salt</div>
-                            <div class="recovery-tip"><strong>Movement</strong>15m Light Walk</div>
-                            <div class="recovery-tip"><strong>Nutrition</strong>High Protein Focus</div>
-                            <div class="recovery-tip"><strong>Sleep</strong>Aim for 8+ Hours</div>
-                        </div>
-                    </div>`;
+                area.innerHTML = `<div class="exercise-card" style="text-align:center;"><div style="font-size:40px; margin-bottom:10px;">🧘</div><h3>Recovery Mode</h3><div class="recovery-grid"><div class="recovery-tip"><strong>Hydration</strong>2-3L Water</div><div class="recovery-tip"><strong>Movement</strong>15m Walk</div><div class="recovery-tip"><strong>Nutrition</strong>High Protein</div><div class="recovery-tip"><strong>Sleep</strong>8+ Hours</div></div></div>`;
                 return;
             }
 
-            area.innerHTML = workouts.filter(ex => ex.day === currentDay).map(ex => `
+            area.innerHTML = dailyEx.map(ex => `
                 <div class="exercise-card">
                     <div class="ex-header"><span>${ex.name}</span><span class="delete-btn" onclick="workouts=workouts.filter(w=>w.id!=${ex.id});save();">✕</span></div>
                     ${ex.sets.map((s, i) => `<div class="set-row"><span>Set ${i+1}: <strong>${s.weight}kg</strong> x <strong>${s.reps}</strong></span><span class="delete-btn" onclick="deleteSet(${ex.id}, ${i})">×</span></div>`).join('')}
-                    <div class="input-row">
-                        <input type="number" id="w-${ex.id}" placeholder="kg" inputmode="decimal">
-                        <input type="number" id="r-${ex.id}" placeholder="reps" inputmode="numeric">
-                        <button onclick="addSet(${ex.id})">✓</button>
-                    </div>
+                    <div class="input-row"><input type="number" id="w-${ex.id}" placeholder="kg" inputmode="decimal"><input type="number" id="r-${ex.id}" placeholder="reps" inputmode="numeric"><button onclick="addSet(${ex.id})">✓</button></div>
                     <select class="feel-select" onchange="updateFeeling(${ex.id}, this.value)">
                         <option value="">How did it feel?</option>
                         <option value="Easy" ${ex.feeling === 'Easy' ? 'selected' : ''}>Easy (RPE 5-6)</option>
