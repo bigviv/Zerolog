@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -38,11 +38,10 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            padding-bottom: 80px; /* Space for nav */
+            padding-bottom: 80px;
             overflow-x: hidden;
         }
 
-        /* Typography & Layout */
         h1, h2, h3 { margin: 0; font-weight: 600; }
         .container { padding: 20px; flex: 1; overflow-y: auto; }
         .hidden { display: none !important; }
@@ -135,17 +134,17 @@
         }
         .badge-pr { background: linear-gradient(45deg, #ff9f0a, #ff453a); color: white; box-shadow: 0 2px 8px rgba(255, 69, 58, 0.4); }
 
-        /* Rest Timer Banner & Ads */
+        /* Rest Timer Banner */
         #timer-banner {
             position: fixed;
-            bottom: 70px; /* Above nav */
+            bottom: 70px;
             left: 10px;
             right: 10px;
             background: #111;
             border: 1px solid var(--accent);
             border-radius: 12px;
             z-index: 90;
-            display: none; /* Flex when active */
+            display: none;
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
@@ -178,7 +177,38 @@
         .insight-text { font-size: 14px; line-height: 1.4; color: var(--text-dim); }
         .insight-highlight { color: var(--accent); font-weight: 600; }
 
-        /* Toast Notification (Undo) */
+        /* Custom Modal (Replaces standard Alert/Confirm) */
+        #custom-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        #custom-modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-box {
+            background: var(--card);
+            padding: 24px;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 320px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transform: scale(0.9);
+            transition: transform 0.2s;
+        }
+        #custom-modal-overlay.active .modal-box { transform: scale(1); }
+        .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; }
+        .modal-msg { color: var(--text-dim); margin-bottom: 20px; font-size: 15px; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+
+        /* Toast Notification */
         #toast {
             position: fixed;
             top: 20px;
@@ -199,13 +229,11 @@
         }
         #toast.visible { opacity: 1; pointer-events: all; }
         
-        /* Utility */
+        /* Utility & Calc */
         .text-center { text-align: center; }
         .text-sm { font-size: 13px; }
         .mt-4 { margin-top: 16px; }
         .flex-between { display: flex; justify-content: space-between; }
-        
-        /* Calculator Plate Visuals */
         .plate-stack { display: flex; align-items: center; justify-content: center; gap: 2px; margin: 20px 0; height: 100px; }
         .bar { width: 10px; height: 100%; background: #555; border-radius: 2px; }
         .plate { height: 80%; width: 15px; border-radius: 2px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 8px; color: #000; font-weight: bold; }
@@ -222,6 +250,15 @@
         <button class="btn-sm btn-outline" onclick="undoAction()" style="border-color: #555;">UNDO</button>
     </div>
 
+    <div id="custom-modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title" id="modal-title">Confirm</div>
+            <div class="modal-msg" id="modal-msg">Are you sure?</div>
+            <div class="modal-actions" id="modal-actions">
+                </div>
+        </div>
+    </div>
+
     <div id="view-workout" class="container">
         <div class="flex-between" style="align-items: flex-end; margin-bottom: 20px;">
             <h1>Workout</h1>
@@ -229,7 +266,6 @@
         </div>
 
         <div id="ai-insights-area"></div>
-
         <div id="workout-list"></div>
         
         <button class="btn btn-outline" onclick="showExerciseSelector()">+ Add Exercise</button>
@@ -237,8 +273,7 @@
         <div id="exercise-selector" class="card hidden" style="margin-top: 20px;">
             <h3>Add Exercise</h3>
             <input type="text" id="new-exercise-name" placeholder="Search or Type new..." list="exercise-suggestions">
-            <datalist id="exercise-suggestions">
-                </datalist>
+            <datalist id="exercise-suggestions"></datalist>
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button class="btn" onclick="addNewExercise()">Add</button>
                 <button class="btn btn-danger" onclick="hideExerciseSelector()">Cancel</button>
@@ -263,8 +298,7 @@
         <div class="card mt-4">
             <label class="text-sm">Target Weight (kg)</label>
             <input type="number" id="calc-weight" value="100" oninput="calculatePlates()" inputmode="decimal">
-            <div class="plate-stack" id="plate-visuals">
-                </div>
+            <div class="plate-stack" id="plate-visuals"></div>
             <div id="calc-result" class="text-center" style="font-size: 18px; font-weight: bold;"></div>
         </div>
         <div class="card">
@@ -294,9 +328,8 @@
             </div>
         </div>
         <div class="text-center text-sm" style="color: #444; margin-top: 40px;">
-            ZeroLog v1.1.0 (AI-Enhanced)<br>
-            No Cloud. No Accounts.
-            <br><a href="privacy.html" style="color:#666;">Privacy Policy</a>
+            ZeroLog v1.1.0<br>
+            <a href="privacy.html" style="color:#666;">Privacy Policy</a>
         </div>
     </div>
 
@@ -320,112 +353,117 @@
     </div>
 
     <nav class="nav">
-        <button class="nav-item active" onclick="switchView('workout')">
-            <span class="nav-icon">🏋️</span>Work
-        </button>
-        <button class="nav-item" onclick="switchView('history')">
-            <span class="nav-icon">📅</span>Logs
-        </button>
-        <button class="nav-item" onclick="switchView('calc')">
-            <span class="nav-icon">🧮</span>Calc
-        </button>
-        <button class="nav-item" onclick="switchView('settings')">
-            <span class="nav-icon">⚙️</span>Set
-        </button>
+        <button class="nav-item active" onclick="switchView('workout')"><span class="nav-icon">🏋️</span>Work</button>
+        <button class="nav-item" onclick="switchView('history')"><span class="nav-icon">📅</span>Logs</button>
+        <button class="nav-item" onclick="switchView('calc')"><span class="nav-icon">🧮</span>Calc</button>
+        <button class="nav-item" onclick="switchView('settings')"><span class="nav-icon">⚙️</span>Set</button>
     </nav>
 
 <script>
-    // --- State Management ---
     const STATE = {
-        workouts: [], // Current active workout session
+        workouts: [],
         history: JSON.parse(localStorage.getItem('zerolog_history') || '[]'),
         settings: JSON.parse(localStorage.getItem('zerolog_settings') || '{"haptics":true, "autotimer":true}'),
         timer: null,
         timerSeconds: 0,
-        undoStack: null // { type: 'set', data: ..., parentId: ... }
+        undoStack: null
     };
 
-    // --- Core: Init & Rendering ---
     window.addEventListener('load', () => {
-        // Init default exercises if empty
         if (!localStorage.getItem('zerolog_exercises')) {
             const defaults = ['Squat', 'Bench Press', 'Deadlift', 'Overhead Press'];
             localStorage.setItem('zerolog_exercises', JSON.stringify(defaults));
         }
-        
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-        
         renderWorkout();
-        calculatePlates(); // Init calc
+        calculatePlates();
         checkPWA();
     });
+
+    // --- Custom Modal System (No Domain Popups) ---
+    function showModal(title, msg, onConfirm, isAlert = false) {
+        const overlay = document.getElementById('custom-modal-overlay');
+        document.getElementById('modal-title').innerText = title;
+        document.getElementById('modal-msg').innerText = msg;
+        const actions = document.getElementById('modal-actions');
+        
+        actions.innerHTML = '';
+        if (isAlert) {
+            const btnOk = document.createElement('button');
+            btnOk.className = 'btn btn-sm';
+            btnOk.innerText = 'OK';
+            btnOk.onclick = closeModal;
+            actions.appendChild(btnOk);
+        } else {
+            const btnCancel = document.createElement('button');
+            btnCancel.className = 'btn btn-sm btn-outline';
+            btnCancel.innerText = 'Cancel';
+            btnCancel.onclick = closeModal;
+            
+            const btnYes = document.createElement('button');
+            btnYes.className = 'btn btn-sm btn-danger';
+            btnYes.innerText = 'Yes';
+            btnYes.onclick = () => {
+                onConfirm();
+                closeModal();
+            };
+            
+            actions.appendChild(btnCancel);
+            actions.appendChild(btnYes);
+        }
+        overlay.classList.add('active');
+    }
+
+    function closeModal() {
+        document.getElementById('custom-modal-overlay').classList.remove('active');
+    }
 
     function switchView(viewName) {
         document.querySelectorAll('.container').forEach(el => el.classList.add('hidden'));
         document.getElementById(`view-${viewName}`).classList.remove('hidden');
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
         event.currentTarget.classList.add('active');
-        
         if(viewName === 'history') renderHistory();
         if(viewName === 'workout') renderWorkout();
     }
 
-    // --- Feature: AI Insights (Client-Side) ---
+    // --- AI & Logic ---
     function generateInsights() {
         const area = document.getElementById('ai-insights-area');
         area.innerHTML = '';
-        if (STATE.history.length < 2) return; // Need data to be smart
+        if (STATE.history.length < 2) return; 
 
-        // 1. Recovery/Fatigue Score
         const last7Days = STATE.history.filter(h => (new Date() - new Date(h.date)) < 604800000);
         const weeklySets = last7Days.reduce((acc, h) => acc + h.exercises.reduce((s, e) => s + e.sets.length, 0), 0);
         
-        let fatigueHtml = '';
         if (weeklySets > 40) {
-            fatigueHtml = `<div class="ai-insight card">
-                <div class="insight-header"><span>⚠️</span> <span class="insight-highlight">High Volume Detected</span></div>
-                <div class="insight-text">You've logged <b>${weeklySets} sets</b> this week. Consider a lighter session or extra rest day if joints feel achy.</div>
+            area.innerHTML += `<div class="ai-insight card">
+                <div class="insight-header"><span>⚠️</span> <span class="insight-highlight">High Volume</span></div>
+                <div class="insight-text">You've logged <b>${weeklySets} sets</b> this week. Watch recovery.</div>
             </div>`;
         }
 
-        // 2. Progressive Overload Suggestion (Based on last logged exercise)
-        let suggestionHtml = '';
         if (STATE.workouts.length > 0) {
             const lastExName = STATE.workouts[STATE.workouts.length - 1].name;
             const historyEx = getExerciseHistory(lastExName);
-            
-            if (historyEx) {
-                const lastSession = historyEx[0]; // Most recent
-                const lastSet = lastSession.sets[0];
-                if (lastSet) {
-                    // Simple Logic: If >5 reps, suggest weight increase
-                    const suggestWeight = parseInt(lastSet.reps) >= 5 
-                        ? (parseFloat(lastSet.weight) + 2.5) 
-                        : parseFloat(lastSet.weight);
-                    
-                    suggestionHtml = `<div class="ai-insight card">
-                        <div class="insight-header"><span>🤖</span> <span class="insight-highlight">Smart Suggestion: ${lastExName}</span></div>
-                        <div class="insight-text">Last time: ${lastSet.weight}kg x ${lastSet.reps}. <br>Target today: <span class="insight-highlight">${suggestWeight}kg</span> to ensure progressive overload.</div>
-                    </div>`;
-                }
+            if (historyEx.length && historyEx[0].sets.length) {
+                const lastSet = historyEx[0].sets[0];
+                const suggestWeight = parseInt(lastSet.reps) >= 5 ? (parseFloat(lastSet.weight) + 2.5) : parseFloat(lastSet.weight);
+                area.innerHTML += `<div class="ai-insight card">
+                    <div class="insight-header"><span>🤖</span> <span class="insight-highlight">Suggest: ${lastExName}</span></div>
+                    <div class="insight-text">Target: <span class="insight-highlight">${suggestWeight}kg</span></div>
+                </div>`;
             }
         }
-
-        area.innerHTML = fatigueHtml + suggestionHtml;
     }
 
-    // --- Workout Logic ---
     function renderWorkout() {
         const list = document.getElementById('workout-list');
         list.innerHTML = '';
-        
-        generateInsights(); // Run AI check
+        generateInsights(); 
 
         if (STATE.workouts.length === 0) {
-            list.innerHTML = `<div class="text-center" style="margin-top:50px; color:var(--text-dim)">
-                <h3>Ready to lift?</h3>
-                <p>Add an exercise to start logging.</p>
-            </div>`;
+            list.innerHTML = `<div class="text-center" style="margin-top:50px; color:var(--text-dim)"><h3>Ready to lift?</h3><p>Add an exercise to start.</p></div>`;
             return;
         }
 
@@ -435,43 +473,31 @@
 
             let html = `<div class="card">
                 <div class="exercise-header">
-                    <div>
-                        <h2>${ex.name}</h2>
-                        <div class="set-history">${prevStr}</div>
-                    </div>
+                    <div><h2>${ex.name}</h2><div class="set-history">${prevStr}</div></div>
                     <button class="btn-sm btn-danger" onclick="removeExercise(${exIndex})">×</button>
                 </div>
                 <div id="sets-${exIndex}">`;
 
             ex.sets.forEach((set, setIndex) => {
-                // PR Check Logic (1RM based)
                 const isPR = checkPR(ex.name, set.weight, set.reps);
-                const prBadge = isPR ? `<span class="badge badge-pr">New PR!</span>` : '';
-
-                html += `
-                <div class="set-row">
+                html += `<div class="set-row">
                     <input type="number" placeholder="kg" value="${set.weight}" onchange="updateSet(${exIndex}, ${setIndex}, 'weight', this.value)" inputmode="decimal">
                     <input type="number" placeholder="reps" value="${set.reps}" onchange="updateSet(${exIndex}, ${setIndex}, 'reps', this.value)" inputmode="numeric">
                     <button class="btn-sm btn-danger" onclick="deleteSet(${exIndex}, ${setIndex})">🗑</button>
                 </div>
-                ${isPR ? `<div style="text-align:right; margin-top:-8px; margin-bottom:8px;">${prBadge}</div>` : ''}
-                `;
+                ${isPR ? `<div style="text-align:right; margin-top:-8px; margin-bottom:8px;"><span class="badge badge-pr">New PR!</span></div>` : ''}`;
             });
 
-            html += `</div>
-                <button class="btn btn-sm btn-outline mt-4" onclick="addSet(${exIndex})">+ Add Set</button>
-            </div>`;
+            html += `</div><button class="btn btn-sm btn-outline mt-4" onclick="addSet(${exIndex})">+ Add Set</button></div>`;
             list.innerHTML += html;
         });
         
-        // Add Finish Button if workout exists
         if (STATE.workouts.length > 0) {
             list.innerHTML += `<button class="btn" style="margin-top:20px; background:var(--success)" onclick="finishWorkout()">Finish Workout 🎉</button>`;
         }
     }
 
     function addSet(exIndex) {
-        // Copy previous set if exists
         const prevSet = STATE.workouts[exIndex].sets[STATE.workouts[exIndex].sets.length - 1];
         STATE.workouts[exIndex].sets.push(prevSet ? {...prevSet} : {weight: '', reps: ''});
         renderWorkout();
@@ -479,36 +505,30 @@
 
     function updateSet(exIndex, setIndex, field, value) {
         STATE.workouts[exIndex].sets[setIndex][field] = value;
-        // Check for auto-complete/timer trigger could go here
-        if (field === 'reps' && value !== '' && STATE.settings.autotimer) {
-            startTimer(120); // 2 min auto timer
-        }
+        if (field === 'reps' && value !== '' && STATE.settings.autotimer) startTimer(120);
     }
 
     function deleteSet(exIndex, setIndex) {
-        // Save for undo
-        STATE.undoStack = {
-            type: 'set',
-            exIndex: exIndex,
-            data: STATE.workouts[exIndex].sets[setIndex]
-        };
-        
+        STATE.undoStack = { type: 'set', exIndex: exIndex, data: STATE.workouts[exIndex].sets[setIndex] };
         STATE.workouts[exIndex].sets.splice(setIndex, 1);
         renderWorkout();
         showUndoToast();
     }
 
+    function removeExercise(index) {
+        // CHANGED: Use Custom Modal instead of native confirm()
+        showModal('Remove Exercise', 'Are you sure you want to remove this exercise?', () => {
+            STATE.workouts.splice(index, 1);
+            renderWorkout();
+        });
+    }
+
     function showExerciseSelector() {
-        const selector = document.getElementById('exercise-selector');
         const dl = document.getElementById('exercise-suggestions');
         const customEx = JSON.parse(localStorage.getItem('zerolog_exercises'));
-        
         dl.innerHTML = '';
-        customEx.forEach(ex => {
-            dl.innerHTML += `<option value="${ex}">`;
-        });
-        
-        selector.classList.remove('hidden');
+        customEx.forEach(ex => dl.innerHTML += `<option value="${ex}">`);
+        document.getElementById('exercise-selector').classList.remove('hidden');
         document.getElementById('new-exercise-name').focus();
     }
 
@@ -516,251 +536,154 @@
         const input = document.getElementById('new-exercise-name');
         const name = input.value.trim();
         if (!name) return;
-
-        // Save to suggestions if new
         const existing = JSON.parse(localStorage.getItem('zerolog_exercises'));
         if (!existing.includes(name)) {
             existing.push(name);
             localStorage.setItem('zerolog_exercises', JSON.stringify(existing));
         }
-
         STATE.workouts.push({ name: name, sets: [{weight: '', reps: ''}] });
         input.value = '';
         document.getElementById('exercise-selector').classList.add('hidden');
         renderWorkout();
     }
 
-    function hideExerciseSelector() {
-        document.getElementById('exercise-selector').classList.add('hidden');
-    }
-
-    function removeExercise(index) {
-        if(confirm('Remove this exercise?')) {
-            STATE.workouts.splice(index, 1);
-            renderWorkout();
-        }
-    }
+    function hideExerciseSelector() { document.getElementById('exercise-selector').classList.add('hidden'); }
 
     function finishWorkout() {
         if (STATE.workouts.length === 0) return;
-        
-        // Remove empty sets
-        STATE.workouts.forEach(ex => {
-            ex.sets = ex.sets.filter(s => s.weight && s.reps);
-        });
-
-        const session = {
-            id: Date.now(),
-            date: new Date().toISOString(),
-            exercises: STATE.workouts
-        };
-
+        STATE.workouts.forEach(ex => { ex.sets = ex.sets.filter(s => s.weight && s.reps); });
+        const session = { id: Date.now(), date: new Date().toISOString(), exercises: STATE.workouts };
         STATE.history.unshift(session);
         localStorage.setItem('zerolog_history', JSON.stringify(STATE.history));
         
-        // Confetti
-        confettiEffect();
-        
-        STATE.workouts = [];
-        renderWorkout();
-        switchView('history');
+        // Visual confirmation without alert
+        const btn = document.querySelector('.btn[onclick="finishWorkout()"]');
+        if(btn) {
+            const originalText = btn.innerText;
+            btn.innerText = "SAVED! 🔥";
+            btn.style.background = "#fff";
+            btn.style.color = "#000";
+            setTimeout(() => {
+                STATE.workouts = [];
+                renderWorkout();
+                switchView('history');
+            }, 800);
+        }
     }
 
-    // --- Helpers: PR & Stats ---
-    function calc1RM(weight, reps) {
-        if (reps == 1) return weight;
-        return Math.round(weight * (1 + reps/30));
-    }
-
+    function calc1RM(weight, reps) { return reps == 1 ? weight : Math.round(weight * (1 + reps/30)); }
     function checkPR(exName, weight, reps) {
         if (!weight || !reps) return false;
         const current1RM = calc1RM(parseFloat(weight), parseFloat(reps));
-        
         const history = getExerciseHistory(exName);
-        if (!history.length) return true; // First time is always a PR
-
-        // Find max 1RM in history
+        if (!history.length) return true; 
         let max1RM = 0;
         history.forEach(session => {
             session.exercises.forEach(e => {
-                if (e.name === exName) {
-                    e.sets.forEach(s => {
-                        const s1RM = calc1RM(parseFloat(s.weight), parseFloat(s.reps));
-                        if (s1RM > max1RM) max1RM = s1RM;
-                    });
-                }
+                if (e.name === exName) e.sets.forEach(s => {
+                    const s1RM = calc1RM(parseFloat(s.weight), parseFloat(s.reps));
+                    if (s1RM > max1RM) max1RM = s1RM;
+                });
             });
         });
-
         return current1RM > max1RM;
     }
+    function getExerciseHistory(name) { return STATE.history.filter(h => h.exercises.some(e => e.name === name)); }
 
-    function getExerciseHistory(name) {
-        // Returns sessions containing this exercise
-        return STATE.history.filter(h => h.exercises.some(e => e.name === name));
-    }
-
-    // --- Undo Logic ---
     function showUndoToast() {
         const t = document.getElementById('toast');
         t.classList.add('visible');
         setTimeout(() => t.classList.remove('visible'), 5000);
     }
-
     function undoAction() {
         if (!STATE.undoStack) return;
-        
-        if (STATE.undoStack.type === 'set') {
-            const { exIndex, data } = STATE.undoStack;
-            // Handle edge case where exercise was removed
-            if (STATE.workouts[exIndex]) {
-                STATE.workouts[exIndex].sets.push(data);
-                renderWorkout();
-            }
+        if (STATE.undoStack.type === 'set' && STATE.workouts[STATE.undoStack.exIndex]) {
+            STATE.workouts[STATE.undoStack.exIndex].sets.push(STATE.undoStack.data);
+            renderWorkout();
         }
         document.getElementById('toast').classList.remove('visible');
         STATE.undoStack = null;
     }
 
-    // --- Timer Logic (With Ad Fix) ---
     function startTimer(seconds) {
         if(STATE.timer) clearInterval(STATE.timer);
         STATE.timerSeconds = seconds;
-        
-        const banner = document.getElementById('timer-banner');
-        banner.style.display = 'flex';
+        document.getElementById('timer-banner').style.display = 'flex';
         updateTimerDisplay();
-        
-        // AD FIX: Always attempt to push ad request when timer starts
-        try {
-            (adsbygoogle = window.adsbygoogle || []).push({});
-        } catch (e) {
-            console.log("AdSense push deferred or limited");
-        }
-
+        try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
         if (STATE.settings.haptics && navigator.vibrate) navigator.vibrate(50);
-
         STATE.timer = setInterval(() => {
             STATE.timerSeconds--;
             updateTimerDisplay();
             if (STATE.timerSeconds <= 0) {
                 stopTimer();
                 if (STATE.settings.haptics && navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU...').play().catch(()=>{}); // Beep placeholder
             }
         }, 1000);
     }
-
-    function stopTimer() {
-        clearInterval(STATE.timer);
-        document.getElementById('timer-banner').style.display = 'none';
-    }
-
-    function addTime(s) {
-        STATE.timerSeconds += s;
-        updateTimerDisplay();
-    }
-
+    function stopTimer() { clearInterval(STATE.timer); document.getElementById('timer-banner').style.display = 'none'; }
+    function addTime(s) { STATE.timerSeconds += s; updateTimerDisplay(); }
     function updateTimerDisplay() {
         const m = Math.floor(STATE.timerSeconds / 60).toString().padStart(2, '0');
         const s = (STATE.timerSeconds % 60).toString().padStart(2, '0');
         document.getElementById('timer-display').innerText = `${m}:${s}`;
     }
 
-    // --- Calculator Logic ---
     function calculatePlates() {
         const weight = parseFloat(document.getElementById('calc-weight').value) || 0;
-        const bar = 20;
-        let remaining = (weight - bar) / 2;
-        
+        let remaining = (weight - 20) / 2;
         const plates = [20, 15, 10, 5, 2.5, 1.25];
         const result = [];
         const visuals = document.getElementById('plate-visuals');
-        visuals.innerHTML = '<div class="bar"></div>'; // Reset visual
-
-        if (remaining <= 0) {
-            document.getElementById('calc-result').innerText = "Just the bar!";
-            return;
-        }
-
+        visuals.innerHTML = '<div class="bar"></div>';
+        if (remaining <= 0) { document.getElementById('calc-result').innerText = "Just the bar!"; return; }
         plates.forEach(p => {
             while (remaining >= p) {
                 result.push(p);
                 remaining -= p;
-                
-                // Visual Generation
-                const colorClass = p === 20 ? 'p-20' : p === 10 ? 'p-10' : p === 5 ? 'p-5' : 'p-2-5';
-                visuals.innerHTML += `<div class="plate ${colorClass}">${p}</div>`;
+                const c = p === 20 ? 'p-20' : p === 10 ? 'p-10' : p === 5 ? 'p-5' : 'p-2-5';
+                visuals.innerHTML += `<div class="plate ${c}">${p}</div>`;
             }
         });
-
         document.getElementById('calc-result').innerText = `Per Side: ${result.join(', ')}`;
     }
 
     function calculateORM() {
         const w = parseFloat(document.getElementById('orm-weight').value) || 0;
         const r = parseFloat(document.getElementById('orm-reps').value) || 0;
-        if(w && r) {
-            document.getElementById('orm-result').innerText = `Est. 1RM: ${calc1RM(w,r)}kg`;
-        }
-    }
-
-    // --- History & Data (Import Deduplication Fix) ---
-    function renderHistory() {
-        const div = document.getElementById('history-list');
-        div.innerHTML = '';
-        STATE.history.forEach(h => {
-            const date = new Date(h.date).toLocaleDateString();
-            const summary = h.exercises.map(e => `${e.sets.length}x ${e.name}`).join(', ');
-            div.innerHTML += `
-            <div class="card">
-                <div class="flex-between">
-                    <b>${date}</b>
-                    <span class="text-sm" style="color:#666">ID: ${h.id ? h.id.toString().slice(-4) : 'OLD'}</span>
-                </div>
-                <div style="margin-top:5px; color:#aaa">${summary}</div>
-            </div>`;
-        });
+        if(w && r) document.getElementById('orm-result').innerText = `Est. 1RM: ${calc1RM(w,r)}kg`;
     }
 
     function exportData() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(STATE.history));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", "zerolog_backup.json");
-        document.body.appendChild(downloadAnchorNode);
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
+        const dl = document.createElement('a');
+        dl.setAttribute("href", dataStr);
+        dl.setAttribute("download", "zerolog_backup.json");
+        document.body.appendChild(dl);
+        dl.click();
+        dl.remove();
     }
 
     function importData(input) {
         const file = input.files[0];
         if (!file) return;
-        
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
                 const imported = JSON.parse(e.target.result);
-                // DEDUPLICATION FIX: Merge based on ID
                 const currentIds = new Set(STATE.history.map(h => h.id));
                 let addedCount = 0;
-                
                 imported.forEach(item => {
-                    // Backwards compatibility for old data without IDs
-                    if (!item.id || !currentIds.has(item.id)) {
-                        STATE.history.push(item);
-                        addedCount++;
-                    }
+                    if (!item.id || !currentIds.has(item.id)) { STATE.history.push(item); addedCount++; }
                 });
-                
-                // Sort by date new -> old
                 STATE.history.sort((a,b) => new Date(b.date) - new Date(a.date));
-                
                 localStorage.setItem('zerolog_history', JSON.stringify(STATE.history));
-                alert(`Imported ${addedCount} workouts successfully.`);
+                
+                // CHANGED: Use Custom Modal (Alert Mode)
+                showModal('Success', `Imported ${addedCount} workouts.`, closeModal, true);
                 renderHistory();
             } catch (err) {
-                alert('Invalid JSON file');
+                showModal('Error', 'Invalid JSON file', closeModal, true);
             }
         };
         reader.readAsText(file);
@@ -771,23 +694,8 @@
         STATE.settings.autotimer = document.getElementById('setting-autotimer').checked;
         localStorage.setItem('zerolog_settings', JSON.stringify(STATE.settings));
     }
-
-    // --- Service Worker (PWA) ---
     function checkPWA() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Fail', err));
-        }
-    }
-
-    // --- Visual Effects ---
-    function confettiEffect() {
-        // Simple canvas confetti implementation could go here
-        // For minimalist single file, we use a CSS animation on the button instead
-        const btn = document.querySelector('.btn[onclick="finishWorkout()"]');
-        if(btn) {
-            btn.innerText = "SAVED! 🔥";
-            setTimeout(() => btn.innerText = "Finish Workout", 2000);
-        }
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e => console.log('SW Fail', e));
     }
 </script>
 </body>
